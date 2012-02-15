@@ -1,0 +1,61 @@
+<!doctype>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"><![endif]-->
+<!--[if IE 7]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Image Mapper</title>
+  <meta name="description" content="Create an image map using HTML5!">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/master.css">
+  <script src="js/libs/modernizr.js"></script>
+</head>
+<body>
+
+  <div id="container">
+    <div id="header">
+      <h1>Image Map Creator</h1>
+      <ul id="controls">
+        <li>
+          <a href="#">Rect</a>
+        </li>
+        <li>
+          <a href="#">Circle</a>
+        </li>
+        <li>
+          <a href="#">Poly</a>
+        </li>
+      </ul>
+    </div>
+    <div id="content">
+      <!--<input type="file" multiple accept="image/*" name="image" id="image">-->
+      <canvas id="image-map-creator" class="image-map-creator"></canvas>
+    </div>
+    <div id="footer"></div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    window.onload = function () {
+      window.imgMapGen = new ImgMapGen({
+        canvas: document.getElementById('image-map-creator'),
+        droppable: document.body
+      });
+      window.imgMapGen.addShape(new Rect({
+        x: 40, y: 40, width: 50, height: 50
+      }));
+      window.imgMapGen.addShape(new Shape({
+        x: 60, y: 140, width: 40, height: 60, fill: 'lightskyblue'
+      }));
+    };
+  </script>
+  <script>
+    var _gaq=[['_setAccount','UA-XXXXX-X'],['_trackPageview']];
+    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+    g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+    s.parentNode.insertBefore(g,s)}(document,'script'));
+  </script>
+</body>
+</html>

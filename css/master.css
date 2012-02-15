@@ -1,0 +1,19 @@
+#header {
+  display: none;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.droppable {
+  background: #fff;
+}
+
+.droppable.drag-over {
+  background: #ccc;
+}
+
+.image-map-creator {
+  display: block;
+  margin: 0 auto;
+}
