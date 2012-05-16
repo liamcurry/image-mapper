@@ -1,306 +1,411 @@
-(function () {
+!function () {
 
-  'use strict';
+  var root = window
+    , doc = root.document
+    , boxes = []
+    , selectionHandles
+    , canvas = getElementById('mapper')
+    , ctx = canvas.getContext('2d')
+    , canvasWidth = canvas.width
+    , canvasHeight = canvas.height
+    , isDrag = false
+    , isResizeDrag = false
+    , expectResize = -1 // will save the # of the selection handle if the mouse is over one.
+    , isCanvasValid = false
+    , isImageDifferent = false
+    , requestAnimationFrame = root['requestAnimationFrame'] ||
+                              root['mozRequestAnimationFrame'] ||
+                              root['webkitRequestAnimationFrame'] ||
+                              root['msRequestAnimationFrame'] ||
+                              root['oRequestAnimationFrame']
+    , cursors = [
+        'nw-resize', 'n-resize', 'ne-resize', 'w-resize'
+      , 'e-resize', 'sw-resize', 's-resize', 'se-resize'
+    ]
+    , anchorSize = 6
+    , anchorColor1 = '#cc0000'
+    , anchorColor2 = 'darkred'
+    , ghostCanvas = doc.createElement('canvas')
+    , gctx = ghostCanvas.getContext('2d') // fake canvas context
+    , reader = new FileReader()
+    , currentImage = new Image()
+    , elDroppable = doc.body
+    , elURL = getElementById('url')
+    , elTarget = getElementById('target')
+    , elGenerated = getElementById('generated')
+    , elControls = getElementById('controls')
+    , elPreview = getElementById('preview')
+    , elBtnGenerate = getElementById('generate')
+    , elContent = getElementById('content')
+    , offsetX, offsetY
+    , stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop
+    , selectedArea
+    , mouseX, mouseY
 
-  // requestAnimationFrame polyfill
-  var lastTime = 0
-    , vendors = ['ms', 'moz', 'webkit', 'o'];
 
-  // For all browsers with prefix versions available
-  for (var x=vendors.length; x-- && !window.requestAnimationFrame;) {
-    window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-    window.cancelRequestAnimationFrame = window[vendors[x] + 'CancelRequestAnimationFrame'];
+  function Area(x, y, w, h, f) {
+    this.x = x || 0
+    this.y = y || 0
+    this.w = w || 1 // default width and height?
+    this.h = h || 1
+    this.f = f || '#444444'
+    this.href = '#'
+    this.target = '_blank'
   }
 
-  // For older browsers
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = function (callback, element) {
-      var currTime = new Date().getTime()
-        , timeToCall = Math.max(0, 16 - (currTime - lastTime))
-        , id = window.setTimeout(function () {
-          callback(currTime + timeToCall);
-        }, timeToCall);
-      lastTime = currTime + timeToCall;
-      return id;
-    };
-  }
 
-  if (!window.cancelRequestAnimationFrame) {
-    window.cancelRequestAnimationFrame = function (id) {
-      clearTimeout(id);
-    };
-  }
-
-  function extend(ClassB, ClassA) {
-    function ClassI() {}
-    ClassI.prototype = ClassA.prototype;
-    ClassB.prototype = new ClassI();
-    ClassB.prototype.constructor = ClassB;
-  }
-
-  function Shape(options) {
-    this.x = options.x || 0;
-    this.y = options.y || 0;
-    this.width = options.width || 1;
-    this.height = options.height || 1;
-    this.fill = options.fill || '#aaa';
-  }
-
-  Shape.prototype.draw = function (context) {
-    context.fillStyle = this.fill;
-    context.fillRect(this.x, this.y, this.width, this.height);
-  };
-
-  Shape.prototype.contains = function (mouseX, mouseY) {
-    return (this.x <= mouseX) && (this.x + this.width >= mouseX) &&
-           (this.y <= mouseY) && (this.y + this.height >= mouseY);
-  };
-
-  Shape.prototype.move = function (x, y) {
-    this.x = x;
-    this.y = y;
-  };
-
-  function Anchor(options) {
-    Shape.call(this, options);
-  }
-
-  extend(Anchor, Shape);
-
-  Anchor.prototype.draw = function (context) {
-    // Align to center of corner by subtracting half width/height
-    var halfHeight = this.height / 2
-      , halfWidth = this.width / 2;
-    context.fillStyle = this.fill;
-    context.fillRect(this.x - halfWidth, this.y - halfHeight,
-                     this.width, this.height);
-  };
-
-  function Rect(options) {
-    Shape.call(this, options);
-    this.anchorSize = options.anchorSize || 6;
-    this.anchors = this.createAnchors();
-  }
-
-  extend(Rect, Shape);
-
-  Rect.prototype.createAnchors = function () {
+  Area.prototype.draw = function (context, optionalColor) {
     var x = this.x
       , y = this.y
-      , w = this.anchorSize
-      , h = w;
-    return [
-        new Anchor({ x: x, y: y, width: w, height: h })
-      , new Anchor({ x: x + this.width, y: y, width: w, height: h })
-      , new Anchor({ x: x + this.width, y: y + this.height, width: w, height: h })
-      , new Anchor({ x: x, y: y + this.height, width: w, height: h })
-    ];
-  };
+      , w = this.w
+      , h = this.h
 
-  Rect.prototype.move = function (x, y) {
-    this.x = x;
-    this.y = y;
-    this.anchors[0].move(x, y);
-    this.anchors[1].move(x + this.width, y);
-    this.anchors[2].move(x + this.width, y + this.height);
-    this.anchors[3].move(x, y + this.height);
-  };
+    context.fillStyle = context === gctx ? '#000' : 'rgba(220,205,65,0.7)'
 
-  Rect.prototype.draw = function (context) {
-    Shape.prototype.draw.call(this, context);
-    for (var i=this.anchors.length; i--;) {
-      this.anchors[i].draw(context);
+    // We can skip the drawing of elements that have moved off the screen:
+    if (x > canvasWidth || y > canvasHeight || x + w < 0 || y + h < 0) return
+
+    context.fillRect(x, y, w, h)
+
+    // draw selection
+    // this is a stroke along the box and also 8 new selection handles
+    if (selectedArea === this) {
+      context.strokeStyle = anchorColor1
+      context.lineWidth = 2
+      context.strokeRect(x, y, w, h)
+      context.fillStyle = anchorColor2
+
+      var half = anchorSize / 2
+
+      // top left, middle, right
+      selectionHandles = [
+          { x: x - half, y: y - half }
+        , { x: x + w / 2 - half, y: y - half }
+        , { x: x + w - half, y: y - half }
+        , { x: x - half, y: y + h / 2 - half }
+        , { x: x + w - half, y: y + h / 2 - half }
+        , { x: x - half, y: y + h - half }
+        , { x: x + w / 2 - half, y: y + h - half }
+        , { x: x + w - half, y: y + h - half }
+      ]
+
+      for (var i=8; i--;) {
+        var cur = selectionHandles[i]
+        context.fillRect(cur.x, cur.y, anchorSize, anchorSize)
+      }
     }
-  };
 
-  function ImgMapGen(options) {
-    // Canvas and context
-    this.canvas = options.canvas;
-    this.context = this.canvas.getContext('2d');
-
-    // Offsets to help mouse coords problems when there's borders or padding
-    this.stylePaddingLeft = parseInt(this.getCanvasComputedStyle('paddingLeft'), 10) || 0;
-    this.stylePaddingTop = parseInt(this.getCanvasComputedStyle('paddingTop'), 10) || 0;
-    this.styleBorderLeft = parseInt(this.getCanvasComputedStyle('borderLeft'), 10) || 0;
-    this.styleBorderTop = parseInt(this.getCanvasComputedStyle('borderTop'), 10) || 0;
-    this.htmlTop = document.body.parentNode.offsetTop;
-    this.htmlLeft = document.body.parentNode.offsetLeft;
-
-    // Read files that are dropped
-    this.droppable = options.droppable;
-    this.currentImage = new Image();
-    this.reader = new FileReader();
-
-    // Keep track of state
-    this.isValid = false;
-    this.isDragging = false;
-    this.dragOffX = 0;
-    this.dragOffY = 0;
-    this.shapes = [];
-
-    // Initialize
-    this.bindEvents();
-    this.animate();   this.selection = null;
   }
 
-  ImgMapGen.prototype.getCanvasComputedStyle = function (property) {
-    return document.defaultView.getComputedStyle(this.canvas, null)[property];
-  };
 
-  ImgMapGen.prototype.resize = function (width, height) {
-    this.canvas.setAttribute('width', width);
-    this.canvas.setAttribute('height', height);
-    this.isValid = false;
-  };
+  Area.prototype.attrs = function (attrs) {
+      for (var name in attrs)
+        this[name] = attrs[name]
+  }
 
-  ImgMapGen.prototype.loadImage = function (data) {
-    if (!data) { return; }
-    this.currentImage.src = data;
-    this.resize(this.currentImage.width, this.currentImage.height);
-    this.context.drawImage(this.currentImage, 0, 0);
-  };
 
-  ImgMapGen.prototype.getMouse = function (event) {
-    var element = this.canvas
-      , offsetX = this.stylePaddingLeft + this.styleBorderLeft + this.htmlLeft
-      , offsetY = this.stylePaddingTop + this.styleBorderTop + this.htmlTop
-      , mouseX = 0
-      , mouseY = 0;
+  Area.prototype.getCoords = function () {
+    return [
+        this.x
+      , this.y
+      , this.x + this.w
+      , this.y + this.h
+    ].join(',')
+  }
 
-    if (element.offsetParent !== undefined) {
-      do {
-        offsetX += element.offsetLeft;
-        offsetY += element.offsetTop;
-      } while ((element = element.offsetParent));
+
+  function getElementById(id) {
+    return doc.getElementById(id)
+  }
+
+
+  function addRect(x, y, w, h) {
+    boxes.push(new Area(x, y, w, h))
+    invalidate()
+  }
+
+
+  function invalidate() {
+    isCanvasValid = false
+  }
+
+
+  function save() {
+    isCanvasValid = true
+  }
+
+
+  function load() {
+
+  }
+
+
+  function resize(width, height) {
+    ghostCanvas.setAttribute('width', width)
+    ghostCanvas.setAttribute('height', height)
+    canvas.setAttribute('width', width)
+    canvas.setAttribute('height', height)
+    elContent.setAttribute('width', width)
+    elContent.setAttribute('height', height)
+    canvasWidth = width
+    canvasHeight = height
+    invalidate()
+  }
+
+
+  function clear(c) {
+    c.clearRect(0, 0, canvasWidth, canvasHeight)
+  }
+
+
+  function draw() {
+    requestAnimationFrame(draw)
+    if (!isCanvasValid) {
+      clear(ctx)
+
+      if (isImageDifferent && currentImage.src) {
+        resize(currentImage.width, currentImage.height)
+        // Set the BG to the image instead of drawing it on the canvas. This
+        // makes redrawing very speedy
+        canvas.style.background = 'url(' + currentImage.src + ')'
+        isImageDifferent = false
+      }
+
+      for (var i=boxes.length; i--;)
+        boxes[i].draw(ctx)
+
+      isCanvasValid = true
     }
+  }
 
-    mouseX = event.pageX - offsetX;
-    mouseY = event.pageY - offsetY;
 
-    return { x: mouseX, y: mouseY };
-  };
+  function toggleControls(shouldEnable) {
+    elControls.style.display = shouldEnable ? 'block' : 'none'
+  }
 
-  ImgMapGen.prototype.bindEvents = function () {
 
-    var _this = this;
+  function getMouse(e) {
+    var el = canvas
+      , offsetX = stylePaddingLeft + styleBorderLeft
+      , offsetY = stylePaddingTop + styleBorderTop
 
-    // Load images with File API and put them on the canvas
-    this.reader.onload = function (e) {
-      _this.loadImage(e.target.result);
-    };
+    do {
+      offsetX += el.offsetLeft
+      offsetY += el.offsetTop
+    } while (el = el.offsetParent)
 
-    // Add hover effect when dragging over files
-    this.droppable.ondragover = function (e) {
-      e.preventDefault();
-      this.className = 'drag-over';
-    };
+    mouseX = e.pageX - offsetX
+    mouseY = e.pageY - offsetY
+  }
 
-    // After dragging files, remove dragging class
-    this.droppable.ondragend = function (e) {
-      e.preventDefault();
-      this.className = '';
-    };
+  function getHTML() {
+    var html = [
+        '<img src="' + currentImage.src + '" usemap=map height=' + canvasHeight + ' width=' + canvasWidth + '>'
+      , '<map name=map id=map>'
+    ]
+    for (var i=boxes.length; i--;) {
+      var box = boxes[i]
+      html.push('\t<area coords=' + box.getCoords() + ' href=' + box.href + ' target=' + box.target + '>')
+    }
+    html.push('</map>')
+    return html.join('\n').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
 
-    // On dropping files, load the file with the File API
-    this.droppable.ondrop = function (e) {
-      e.preventDefault();
-      this.className = '';
-      var file = e.dataTransfer.files[0];
-      _this.reader.readAsDataURL(file);
-    };
 
-    this.canvas.onmousedown = function (e) {
-      var mouse = _this.getMouse(e)
-        , mouseX = mouse.x
-        , mouseY = mouse.y
-        , shapes = _this.shapes;
+  // Start all the initialization stuff
 
-      // Loop through all the shapes and see if we can select one
-      for (var i=shapes.length; i--;) {
-        var shape = shapes[i];
-        if (!shape.contains(mouseX, mouseY)) {
-          continue;
+  ghostCanvas.height = canvasHeight
+  ghostCanvas.width = canvasWidth
+
+  //fixes a problem where double clicking causes text to get selected on the canvas
+  canvas.onselectstart = function () { return false }
+
+  // fixes mouse co-ordinate problems when there's a border or padding
+  // see getMouse for more detail
+  if (doc.defaultView && doc.defaultView.getComputedStyle) {
+    var style = doc.defaultView.getComputedStyle(canvas, null)
+    stylePaddingLeft = +style.paddingLeft || 0
+    stylePaddingTop = +style.paddingTop || 0
+    styleBorderLeft = +style.borderLeftWidth || 0
+    styleBorderTop = +style.borderTopWidth || 0
+  }
+
+  requestAnimationFrame(draw)
+
+  // set our events. Up and down are for dragging,
+  // double click is for making new boxes
+  canvas.onmousedown = function (e) {
+    getMouse(e)
+
+    //we are over a selection box
+    if (expectResize !== -1) {
+      isResizeDrag = true
+    } else {
+      clear(gctx)
+      for (var i=boxes.length; i--;) {
+        // draw shape onto ghost context
+        boxes[i].draw(gctx, 'black')
+
+        // get image data at the mouse x,y pixel
+        var imageData = gctx.getImageData(mouseX, mouseY, 1, 1)
+          , index = (mouseX + mouseY * imageData.width) * 4
+
+        // if the mouse pixel exists, select and break
+        if (imageData.data[3] > 0) {
+          selectedArea = boxes[i]
+          elURL.value = selectedArea.href
+          elTarget.value = selectedArea.target
+          offsetX = mouseX - selectedArea.x
+          offsetY = mouseY - selectedArea.y
+          selectedArea.x = mouseX - offsetX
+          selectedArea.y = mouseY - offsetY
+          toggleControls(1)
+          isDrag = true
+          invalidate()
+          clear(gctx)
+          return
         }
-        _this.dragOffX = mouseX - shape.x;
-        _this.dragOffY = mouseY - shape.y;
-        _this.isDragging = true;
-        _this.selection = shape;
-        _this.isValid = false;
-        return;
       }
+      // havent returned means we have selected nothing
+      selectedArea = null
+      elURL.value = ''
+      elTarget.value = ''
+      toggleControls(0)
 
-      // If we haven't returned yet then the user didn't click on an
-      // object, so we deselect anything that is already selected.
-      if (_this.selection) {
-        _this.selection = null;
-        _this.isValid = false;
-      }
-    };
+      // clear the ghost canvas for next time
+      clear(gctx)
+      // invalidate because we might need the selection border to disappear
+      invalidate()
+    }
+  }
 
-    this.canvas.onmouseup = function (e) {
-      _this.isDragging = false;
-    };
+  canvas.onmouseup = function () {
+    isDrag = false
+    isResizeDrag = false
+    expectResize = -1
+  }
 
-    this.canvas.onmousemove = function (e) {
-      var mouse = _this.getMouse(e);
-      if (_this.isDragging) {
-        _this.selection.move(mouse.x - _this.dragOffX, mouse.y - _this.dragOffY);
-        _this.isValid = false;
-      }
-    };
+  canvas.ondblclick = function (e) {
+    getMouse(e)
+    addRect(mouseX - 10, mouseY - 10, 20, 20)
+  }
 
-  };
+  canvas.onmousemove = function (e) {
 
-  ImgMapGen.prototype.addShape = function (shape) {
-    this.shapes.push(shape);
-    this.isValid = false;
-  };
+    if (isDrag) {
+      getMouse(e)
+      selectedArea.attrs({
+          x: mouseX - offsetX
+        , y: mouseY - offsetY
+      })
+      invalidate()
+    } else if (isResizeDrag) {
+      var x = selectedArea.x
+        , y = selectedArea.y
+        , w = selectedArea.w
+        , h = selectedArea.h
+        , newAttrs = [
+          {
+              x: mouseX
+            , y: mouseY
+            , w: w + (x - mouseX)
+            , h: h + (y - mouseY)
+          }
+          , {
+              y: mouseY
+            , h: h + (y - mouseY)
+          }
+          , {
+              y: mouseY
+            , w: mouseX - x
+            , h: h + (y - mouseY)
+          }
+          , {
+              x: mouseX
+            , w: w + (x - mouseX)
+          }
+          , {
+              w: mouseX - x
+          }
+          , {
+              x: mouseX
+            , w: w + (x - mouseX)
+            , h: mouseY - y
+          }
+          , {
+              h: mouseY - y
+          }
+          , {
+              w: mouseX - x
+            , h: mouseY - y
+          }
+        ]
 
-  ImgMapGen.prototype.clear = function () {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  };
-
-  ImgMapGen.prototype.draw = function () {
-    if (this.isValid) { return; }
-    console.log('no longer valid -- drawing');
-    var context = this.context
-      , shapes = this.shapes;
-
-    this.clear();
-    if (this.currentImage) {
-      this.loadImage(this.currentImage.src);
+      selectedArea.attrs(newAttrs[expectResize])
+      invalidate()
     }
 
-    for (var i=shapes.length; i--;) {
-      var shape = shapes[i];
-      if (shape.x > this.width || shape.y > this.height ||
-          shape.x + shape.width < 0 || shape.y + shape.height < 0) {
-        continue;
+    getMouse(e)
+    // if there's a selection see if we grabbed one of the selection handles
+    if (selectedArea && !isResizeDrag) {
+      for (var i=8; i--;) {
+        var anchor = selectionHandles[i]
+
+        // we dont need to use the ghost context because
+        // selection handles will always be rectangles
+        if (mouseX >= anchor.x && mouseX <= anchor.x + anchorSize &&
+            mouseY >= anchor.y && mouseY <= anchor.y + anchorSize) {
+          // we found one!
+          expectResize = i
+          invalidate()
+          this.style.cursor = cursors[i]
+          return
+        }
+
       }
-      shape.draw(this.context);
+      // not over a selection box, return to normal
+      isResizeDrag = false
+      expectResize = -1
+      this.style.cursor = 'auto'
     }
+  }
 
-    if (this.selection) {
-      var selection = this.selection;
-      context.strokeStyle = this.selectionColor;
-      context.lineWidth = this.selectionWidth;
-      context.strokeRect(selection.x, selection.y,
-                         selection.width, selection.height);
-    }
-    this.isValid = true;
-  };
+  reader.onload = function (e) {
+    currentImage.src = e.target.result
+    boxes = []
+    canvas.removeAttribute('hidden')
+    isImageDifferent = true
+    invalidate()
+  }
 
-  ImgMapGen.prototype.animate = function () {
-    var _this = this;
-    window.requestAnimationFrame(function () {
-      _this.animate();
-    });
-    this.draw();
-  };
+  elDroppable.ondragover = function (e) {
+    e.preventDefault()
+    this.className = 'drag-over'
+  }
 
-  window.Rect = Rect;
-  window.Shape = Shape;
-  window.Anchor = Anchor;
-  window.ImgMapGen = ImgMapGen;
+  elDroppable.ondragend = function (e) {
+    e.preventDefault()
+  }
 
-}());
+  elDroppable.ondrop = function (e) {
+    e.preventDefault()
+    this.className = 'has-image'
+    reader.readAsDataURL(e.dataTransfer.files[0])
+  }
+
+  elURL.onkeyup = function () {
+    if (selectedArea)
+      selectedArea.href = this.value
+  }
+
+  elTarget.onchange = function () {
+    if (selectedArea)
+      selectedArea.target = this.value
+  }
+
+  elBtnGenerate.onclick = function (e) {
+    e.preventDefault()
+    elGenerated.innerHTML = getHTML()
+  }
+
+}()
