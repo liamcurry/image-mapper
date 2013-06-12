@@ -1,11 +1,24 @@
-css:
-	stylus --use nib --watch css
+STYLUS = node node_modules/.bin/stylus
+
+all: clean build
+build: build_node
+clean: clean_osx clean_node
+
+build_node:
+	npm install
+
+clean_node:
+	rm -Rf node_modules
+
+reset_node: clean_node build_node
+
+clean_os:
+	find . -name ".DS_Store" -delete
 
 run:
-	python -m SimpleHTTPServer
+	python -m SimpleHTTPServer 8002
 
-build:
-	java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS \
-		--js js/main.js > js/main.min.js
+watch_css:
+	$(STYLUS) -u nib -c --include-css -w css/*.styl
 
-.PHONY: css run
+.PHONY: run shell clean_os build_node reset_node

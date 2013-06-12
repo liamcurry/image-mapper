@@ -1,0 +1,8 @@
+{
+  "name": "wp-ad-flightmanager",
+  "preferGlobal": false,
+  "dependencies": {
+    "stylus": "*",
+    "nib": "*"
+  }
+}

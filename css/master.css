@@ -1,0 +1,13 @@
+*{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
+html,body,#container,#started{height:100%}
+body{background:#666;font-family:Helvetica,Arial,sans-serif;}
+body.has-image #intro{display:none}
+body.has-image #started{display:block}
+#content{padding:40px 0 120px}
+#intro{background:#fff;border:1px solid #ccc;-webkit-box-shadow:0 1px 5px #333;box-shadow:0 1px 5px #333;-webkit-border-radius:3px;border-radius:3px;font-size:18px;font-weight:bold;padding:20px;margin:200px auto 0;max-width:600px;text-align:center;}
+#intro p{border:5px dashed #ebebeb;padding:100px 0}
+#started{display:none}
+#form-controls{background:#f00;display:none;left:0;padding:5px;position:absolute;top:0;}
+#form-controls #form-url{width:150px}
+#mapper{display:block;margin:0 auto}
+#generated{color:#fff;display:block;font-size:22px;margin:20px auto;width:60%}

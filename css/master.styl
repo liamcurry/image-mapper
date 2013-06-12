@@ -1,0 +1,67 @@
+@import 'nib'
+
+collapsed-results-height = 100px
+
+*
+  box-sizing border-box
+  margin 0
+  padding 0
+
+html, body, #container, #started
+  height 100%
+
+body
+  background #666
+  font-family Helvetica, Arial, sans-serif
+
+  &.has-image
+
+    #intro
+      display none
+
+    #started
+      display block
+
+#content
+  padding 40px 0 collapsed-results-height + 20px
+
+#intro
+  background #fff
+  border 1px solid #ccc
+  box-shadow 0 1px 5px #333
+  border-radius 3px
+  font-size 18px
+  font-weight bold
+  padding 20px
+  margin 200px auto 0
+  max-width 600px
+  text-align center
+
+  p
+    border 5px dashed #ebebeb
+    padding 100px 0
+
+#started
+  display none
+
+#form-controls
+  background red
+  display none
+  left 0
+  padding 5px
+  position absolute
+  top 0
+
+  #form-url
+    width 150px
+
+#mapper
+  display block
+  margin 0 auto
+
+#generated
+  color #fff
+  display block
+  font-size 22px
+  margin 20px auto
+  width 60%

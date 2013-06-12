@@ -1,29 +1,42 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>HTML5 Canvas demo 1</title>
+<title>Image Mapper</title>
 <link rel=stylesheet href=css/master.css>
-<div id=container>
-  <div id=content>
-    <canvas id=mapper hidden></canvas>
-    <p id=intro>Drag and drop an image to begin.
-    <div id=controls>
-      <ul>
-        <li>
-          <label for=url>URL</label>
-          <input type=url id=url disabled>
-        <li>
-          <label for=target>Target</label>
-          <select id=target disabled>
-            <option selected>_blank</option>
-            <option>_self</option>
-          </select>
-      </ul>
-    </div>
-  </div>
+
+<div id=images>
+  <canvas id=mapper></canvas>
+  <p id=empty>Drag and drop an image to begin.
 </div>
 <div id=results>
-  <button id=generate>Generate Image Map</button>
-  <textarea id=generated readonly></textarea>
-  <div id=preview></div>
+  <ul id=options style=display:none>
+    <li>
+      <label for=form-base64>Base64 Encode Image</label>
+      <input id=form-base64 name=base64 type=checkbox>
+  </ul>
+  <div id=generated></div>
 </div>
+
+<ul id=controls>
+  <li>
+    <label for=url>URL</label>
+    <input id=url type=url>
+    <label for=target>Target</label>
+    <select id=target>
+      <option selected>_blank
+      <option>_self
+    </select>
+  <li>
+    <label for=x>X</label>
+    <input id=x type=number min=0>
+    <label for=y>Y</label>
+    <input id=y type=number min=0>
+  <li>
+    <label for=w>W</label>
+    <input id=w type=number min=0>
+    <label for=h>H</label>
+    <input id=h type=number min=0>
+</ul>
+
+<script src=//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.2/jquery.min.js></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min.js></script>
 <script src=js/main.js></script>
