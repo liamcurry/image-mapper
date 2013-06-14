@@ -1,13 +1,18 @@
 *{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
 html,body,#container,#started{height:100%}
-body{background:#666;font-family:Helvetica,Arial,sans-serif;}
-body.has-image #intro{display:none}
-body.has-image #started{display:block}
+body{background:#ebebeb;color:#333;font-family:Helvetica,Arial,sans-serif;}
+body.state-dragover #state-intro p{border-color:#008000}
+body.state-started #state-intro{display:none}
+body.state-started #state-started{display:block}
+body.state-dragging *,body.state-resizing *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+h1{margin:0 0 30px;text-shadow:1px 0 0 #fff}
+a{color:#08c}
 #content{padding:40px 0 120px}
-#intro{background:#fff;border:1px solid #ccc;-webkit-box-shadow:0 1px 5px #333;box-shadow:0 1px 5px #333;-webkit-border-radius:3px;border-radius:3px;font-size:18px;font-weight:bold;padding:20px;margin:200px auto 0;max-width:600px;text-align:center;}
-#intro p{border:5px dashed #ebebeb;padding:100px 0}
-#started{display:none}
+#state-intro{background:#fff;border:1px solid #ccc;-webkit-border-radius:5px;border-radius:5px;-webkit-box-shadow:0 3px 3px #ccc;box-shadow:0 3px 3px #ccc;padding:20px;font-size:18px;font-weight:bold;margin:200px auto 0;max-width:600px;text-align:center;}
+#state-intro p{border:1px dashed #ebebeb;padding:100px 0}
+#state-started{display:none;padding:50px}
 #form-controls{background:#f00;display:none;left:0;padding:5px;position:absolute;top:0;}
 #form-controls #form-url{width:150px}
-#mapper{display:block;margin:0 auto}
-#generated{color:#fff;display:block;font-size:22px;margin:20px auto;width:60%}
+#mapper-container{background:#fff;border:1px solid #ccc;-webkit-border-radius:5px;border-radius:5px;-webkit-box-shadow:0 3px 3px #ccc;box-shadow:0 3px 3px #ccc;padding:20px}
+#mapper{display:block;margin:0 auto;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+#generated{display:block;font-size:22px;height:200px;margin:20px auto;width:60%}

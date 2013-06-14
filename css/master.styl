@@ -11,38 +11,62 @@ html, body, #container, #started
   height 100%
 
 body
-  background #666
+  background #ebebeb
+  color #333
   font-family Helvetica, Arial, sans-serif
 
-  &.has-image
+  &.state-dragover
 
-    #intro
+    #state-intro
+
+      p
+        border-color green
+
+  &.state-started
+
+    #state-intro
       display none
 
-    #started
+    #state-started
       display block
+
+  &.state-dragging, &.state-resizing
+
+    *
+      user-select none
+
+h1
+  margin 0 0 30px
+  text-shadow 1px 0 0 #fff
+
+a
+  color #0088cc
+
+well()
+  background #fff
+  border 1px solid #ccc
+  border-radius 5px
+  box-shadow 0 3px 3px #ccc
+  padding 20px
 
 #content
   padding 40px 0 collapsed-results-height + 20px
 
-#intro
-  background #fff
-  border 1px solid #ccc
-  box-shadow 0 1px 5px #333
-  border-radius 3px
+#state-intro
+  well()
   font-size 18px
   font-weight bold
-  padding 20px
   margin 200px auto 0
   max-width 600px
   text-align center
 
   p
-    border 5px dashed #ebebeb
+    border 1px dashed #ebebeb
     padding 100px 0
 
-#started
+#state-started
   display none
+  padding 50px
 
 #form-controls
   background red
@@ -55,13 +79,17 @@ body
   #form-url
     width 150px
 
+#mapper-container
+  well()
+
 #mapper
   display block
   margin 0 auto
+  user-select none
 
 #generated
-  color #fff
   display block
   font-size 22px
+  height 200px
   margin 20px auto
   width 60%

@@ -1,172 +1,228 @@
 (function () {
 
-  var root = window;
-  var doc = root.document;
-  var boxes = [];
-  var selectionHandles;
-  var canvas = getElementById('mapper');
-  var ctx = canvas.getContext('2d');
-  var canvasWidth = canvas.width;
-  var canvasHeight = canvas.height;
-  var isDrag = false;
-  var isResizeDrag = false;
+  window.requestAnimationFrame = window.requestAnimationFrame ||
+    window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||
+    window.msRequestAnimationFrame || window.oRequestAnimationFrame;
 
   // will save the # of the selection handle if the mouse is over one.
-  var expectResize = -1;
+  var currentAnchor = -1;
   var useBase64 = false;
-  var isCanvasValid = false;
-  var isImageDifferent = false;
-  var requestAnimationFrame = root['requestAnimationFrame'] ||
-                              root['mozRequestAnimationFrame'] ||
-                              root['webkitRequestAnimationFrame'] ||
-                              root['msRequestAnimationFrame'] ||
-                              root['oRequestAnimationFrame'];
+  var Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
   var cursors = [
     'nw-resize', 'n-resize', 'ne-resize', 'w-resize',
     'e-resize', 'sw-resize', 's-resize', 'se-resize'
   ];
-  var anchorSize = 6;
   var anchorColor1 = '#cc0000';
   var anchorColor2 = 'darkred';
-  var ghostCanvas = doc.createElement('canvas');
-  var gctx = ghostCanvas.getContext('2d'); // fake canvas context
   var reader = new FileReader();
-  var currentImage = new Image();
-  var elDroppable = doc.body;
-  var elURL = getElementById('form-url');
-  var elTarget = getElementById('form-target');
-  var elGenerated = getElementById('generated');
-  var elControls = getElementById('form-controls');
-  var offsetX, offsetY, stylePaddingLeft, stylePaddingTop, styleBorderLeft,
-      styleBorderTop, selectedArea, mouseX, mouseY;
+  var elGenerated = document.getElementById('generated');
+  var elControls = document.getElementById('controls');
+  var canvas = document.getElementById('mapper');
+  var form = document.getElementById('selected');
+  var fields = ['x', 'y', 'width', 'height', 'url', 'target'];
+  var offsetX, offsetY, mouseX, mouseY;
+  var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
 
+  var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
+  var status = Status.IDLE;
 
-  function Area(x, y, w, h, f) {
+  window.map = {
+
+    selected: null,
+
+    rects: [],
+
+    redraw: true,
+
+    image: new Image(),
+
+    context: canvas.getContext('2d'),
+
+    status: 0,
+
+    load: function (imageData) {
+      map.image.src = imageData;
+      map.rects = [];
+      canvas.width = map.image.width;
+      canvas.height = map.image.height;
+      canvas.style.background = 'url(' + imageData + ')';
+      map.redraw = true;
+    },
+
+    addRect: function (x, y, w, h) {
+      map.selected = new Rect(x, y, w, h);
+      map.rects.push(map.selected);
+      map.redraw = true;
+    },
+
+    select: function (index) {
+      var selected = map.selected = map.rects[index];
+      var fieldName;
+      for (var i=fields.length; i--;) {
+        fieldName = fields[i];
+        form[fieldName].value = selected[fieldName];
+      }
+
+      offsetX = mouseX - selected.x;
+      offsetY = mouseY - selected.y;
+
+      map.selected.x = mouseX - offsetX;
+      map.selected.y = mouseY - offsetY;
+
+      toggleControls(1);
+      status = Status.DRAGGING;
+      map.redraw = true;
+    },
+
+    deselect: function () {
+      map.selected = null;
+      toggleControls(0);
+      map.redraw = true;
+    },
+
+    clear: function () {
+      map.context.clearRect(0, 0, canvas.width, canvas.height);
+    },
+
+    draw: function () {
+      if (!map.redraw) return;
+      map.clear();
+      for (var i=map.rects.length; i--;)
+        map.rects[i].draw(map.context);
+      map.redraw = false;
+    },
+
+    toHTML: function () {
+      var html = [
+        '<img src="' +
+        (useBase64 ? map.image.src : '//YOUR.LINK.TO/IMG.PNG') +
+        '" usemap=map height=' + canvas.height + ' width=' + canvas.width + '>',
+        '<map name=map id=map>'
+      ];
+      for (var i=map.rects.length; i--;)
+        html.push(map.rects[i].toHTML());
+      html.push('</map>');
+      return html.join('\n');
+    }
+
+  };
+
+  function Rect(x, y, width, height, f) {
     this.x = x || 0;
     this.y = y || 0;
-    this.w = w || 1; // default width and height?
-    this.h = h || 1;
+    this.width = width || 1; // default width and height?
+    this.height = height || 1;
     this.f = f || '#444444';
-    this.href = '#';
+    this.url = '#';
     this.target = '_blank';
+    this.anchors = [];
   }
 
+  Rect.ANCHOR_SIZE = 6;
 
-  Area.prototype.draw = function (context, optionalColor) {
-    var x = this.x;
-    var y = this.y;
-    var w = this.w;
-    var h = this.h;
+  Rect.prototype.draw = function (context, optionalColor) {
+    context.fillStyle = 'rgba(220,205,65,0.7)';
+    context.fillRect(this.x, this.y, this.width, this.height);
 
-    context.fillStyle = context === gctx ? '#000' : 'rgba(220,205,65,0.7)';
+    if (map.selected === this) {
+      var x = this.x - Rect.ANCHOR_SIZE / 2;
+      var y = this.y - Rect.ANCHOR_SIZE / 2;
+      var w = this.width, h = this.height;
 
-    // We can skip the drawing of elements that have moved off the screen:
-    if (x > canvasWidth || y > canvasHeight || x + w < 0 || y + h < 0) return;
-
-    context.fillRect(x, y, w, h);
-
-    // draw selection
-    // this is a stroke along the box and also 8 new selection handles
-    if (selectedArea === this) {
       context.strokeStyle = anchorColor1;
       context.lineWidth = 2;
-      context.strokeRect(x, y, w, h);
+      context.strokeRect(this.x, this.y, this.width, this.height);
       context.fillStyle = anchorColor2;
 
-      var half = anchorSize / 2;
-
       // top left, middle, right
-      selectionHandles = [
-        { x: x - half, y: y - half },
-        { x: x + w / 2 - half, y: y - half },
-        { x: x + w - half, y: y - half },
-        { x: x - half, y: y + h / 2 - half },
-        { x: x + w - half, y: y + h / 2 - half },
-        { x: x - half, y: y + h - half },
-        { x: x + w / 2 - half, y: y + h - half },
-        { x: x + w - half, y: y + h - half }
+      this.anchors = [
+        { x: x, y: y },
+        { x: x + w / 2,  y: y },
+        { x: x + w,      y: y },
+        { x: x,          y: y + h / 2 },
+        { x: x + w,      y: y + h / 2 },
+        { x: x,          y: y + h },
+        { x: x + w / 2,  y: y + h },
+        { x: x + w,      y: y + h }
       ];
 
       for (var i=8; i--;) {
-        var cur = selectionHandles[i];
-        context.fillRect(cur.x, cur.y, anchorSize, anchorSize);
+        var anchor = this.anchors[i];
+        context.fillRect(anchor.x, anchor.y, Rect.ANCHOR_SIZE, Rect.ANCHOR_SIZE);
       }
     }
 
   };
 
+  Rect.prototype.resize = function (fromAnchor) {
+    var x = this.x, y = this.y, w = this.width, h = this.height;
+    var attrs = {};
 
-  Area.prototype.attrs = function (attrs) {
-    for (var name in attrs)
-      this[name] = attrs[name];
-  };
-
-
-  Area.prototype.getCoords = function () {
-    return [this.x, this.y, this.x + this.w, this.y + this.h].join(',');
-  };
-
-
-  function getElementById(id) {
-    return doc.getElementById(id);
-  }
-
-
-  function addRect(x, y, w, h) {
-    boxes.push(new Area(x, y, w, h));
-    invalidate();
-  }
-
-
-  function invalidate() {
-    isCanvasValid = false;
-  }
-
-
-  function resize(width, height) {
-    ghostCanvas.setAttribute('width', width);
-    ghostCanvas.setAttribute('height', height);
-    canvas.setAttribute('width', width);
-    canvas.setAttribute('height', height);
-    canvasWidth = width;
-    canvasHeight = height;
-    invalidate();
-  }
-
-
-  function clear(c) {
-    c.clearRect(0, 0, canvasWidth, canvasHeight);
-  }
-
-
-  function draw() {
-    requestAnimationFrame(draw);
-
-    if (!isCanvasValid) {
-      clear(ctx);
-
-      if (isImageDifferent && currentImage.src) {
-        resize(currentImage.width, currentImage.height);
-        // Set the BG to the image instead of drawing it on the canvas. This
-        // makes redrawing very speedy
-        canvas.style.background = 'url(' + currentImage.src + ')';
-        isImageDifferent = false;
-      }
-
-      for (var i=boxes.length; i--;)
-        boxes[i].draw(ctx);
-
-      updateGenerated();
-
-      isCanvasValid = true;
+    switch (fromAnchor) {
+    case Anchors.NW:
+      attrs = {
+        y: mouseY, height: h + (y - mouseY),
+        x: mouseX, width: w + (x - mouseX)
+      };
+      break;
+    case Anchors.N:
+      attrs = { y: mouseY, height: h + (y - mouseY) };
+      break;
+    case Anchors.NE:
+      attrs = { y: mouseY, height: h + (y - mouseY), width: mouseX - x };
+      break;
+    case Anchors.E:
+      attrs = { width: mouseX - x };
+      break;
+    case Anchors.SE:
+      attrs = { width: mouseX - x, height: mouseY - y };
+      break;
+    case Anchors.S:
+      attrs = { height: mouseY - y };
+      break;
+    case Anchors.SW:
+      attrs = { x: mouseX, width: w + (x - mouseX), height: mouseY - y };
+      break;
+    case Anchors.W:
+      attrs = { x: mouseX, width: w + (x - mouseX) };
+      break;
     }
-  }
+    this.attrs(attrs);
+  };
 
+  Rect.prototype.attrs = function (attrs) {
+    if (attrs.url)
+      this.url = attrs.url;
+    if (attrs.target)
+      this.target = attrs.target;
+    if (attrs.x)
+      this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, canvas.width - this.width));
+    if (attrs.y)
+      this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, canvas.height - this.height));
+    if (attrs.width)
+      this.width = Math.max(0, Math.min(attrs.width, canvas.width - this.x));
+    if (attrs.height)
+      this.height = Math.max(0, Math.min(attrs.height, canvas.height - this.y));
+    map.redraw = true;
+  };
+
+  Rect.prototype.getCoords = function () {
+    return [this.x, this.y, this.x + this.width, this.y + this.height].join(',');
+  };
+
+  Rect.prototype.isWithin = function (x, y) {
+    return this.x <= x && this.x + this.width >= x &&
+           this.y <= y && this.y + this.height >= y;
+  };
+
+  Rect.prototype.toHTML = function () {
+    return '<area coords=' + this.getCoords() + ' href=' + this.url +
+           ' target=' + this.target + '>';
+  };
 
   function toggleControls(shouldEnable) {
-    elControls.style.display = shouldEnable ? 'block' : 'none';
+    elControls.className = shouldEnable ? 'enabled' : 'disabled';
   }
-
 
   function getMouse(e) {
     var el = canvas;
@@ -178,192 +234,143 @@
       offsetY += el.offsetTop;
     } while (el = el.offsetParent);
 
-    mouseX = e.pageX - offsetX;
-    mouseY = e.pageY - offsetY;
+    mouseX = Math.max(0, e.pageX - offsetX);
+    mouseY = Math.max(0, e.pageY - offsetY);
   }
 
-  function getHTML() {
-    var html = [
-      '<img src="' +
-      (useBase64 ? currentImage.src : '//YOUR.LINK.TO/IMG.PNG') +
-      '" usemap=map height=' + canvasHeight + ' width=' + canvasWidth + '>',
-      '<map name=map id=map>'
-    ];
-    for (var i=boxes.length; i--;) {
-      var box = boxes[i];
-      html.push('  <area coords=' + box.getCoords() + ' href=' + box.href + ' target=' + box.target + '>');
+  function updateGenerated(map) {
+    var html = map.toHTML();
+    elGenerated.innerHTML = '<pre>' + html.replace(/</g, '&lt;')
+                                          .replace(/>/g, '&gt;') + '</pre>';
+    if (map.selected) {
+      console.log('updating selected');
+      for (var fieldName, i=fields.length; i--;) {
+        fieldName = fields[i];
+        form[fieldName].value = map.selected[fieldName];
+      }
     }
-    html.push('</map>');
-    return html.join('\n');
   }
 
-
-  // Start all the initialization stuff
-
-  ghostCanvas.height = canvasHeight;
-  ghostCanvas.width = canvasWidth;
+  canvas.ondblclick = function (e) {
+    getMouse(e);
+    map.addRect(mouseX - 10, mouseY - 10, 20, 20);
+  };
 
   //fixes a problem where double clicking causes text to get selected on the canvas
   canvas.onselectstart = function () { return false; };
 
-  // fixes mouse co-ordinate problems when there's a border or padding
-  // see getMouse for more detail
-  if (doc.defaultView && doc.defaultView.getComputedStyle) {
-    var style = doc.defaultView.getComputedStyle(canvas, null);
-    stylePaddingLeft = +style.paddingLeft || 0;
-    stylePaddingTop = +style.paddingTop || 0;
-    styleBorderLeft = +style.borderLeftWidth || 0;
-    styleBorderTop = +style.borderTopWidth || 0;
-  }
-
-  requestAnimationFrame(draw);
-
   // set our events. Up and down are for dragging,
-  // double click is for making new boxes
-  canvas.onmousedown = function (e) {
+  // double click is for making new rects
+  document.body.onmousedown = function (e) {
     getMouse(e);
+    if (fields.indexOf(e.target.id) >= 0) return;
 
-    //we are over a selection box
-    if (expectResize !== -1) {
-      isResizeDrag = true;
+    //we are over a selection rect
+    if (currentAnchor !== -1) {
+      status = Status.RESIZING;
+      this.classList.add('state-resizing');
     } else {
-      clear(gctx);
-      for (var i=boxes.length; i--;) {
-        // draw shape onto ghost context
-        boxes[i].draw(gctx, 'black');
-
-        // get image data at the mouse x,y pixel
-        var imageData = gctx.getImageData(mouseX, mouseY, 1, 1);
-        var index = (mouseX + mouseY * imageData.width) * 4;
-
-        // if the mouse pixel exists, select and break
-        if (imageData.data[3] > 0) {
-          selectedArea = boxes[i];
-          elURL.value = selectedArea.href;
-          elTarget.value = selectedArea.target;
-          offsetX = mouseX - selectedArea.x;
-          offsetY = mouseY - selectedArea.y;
-          selectedArea.x = mouseX - offsetX;
-          selectedArea.y = mouseY - offsetY;
-          toggleControls(1);
-          isDrag = true;
-          invalidate();
-          clear(gctx);
-          return;
+      for (var i=map.rects.length; i--;) {
+        if (map.rects[i].isWithin(mouseX, mouseY)) {
+          this.classList.add('state-dragging');
+          return map.select(i);
         }
       }
       // havent returned means we have selected nothing
-      selectedArea = null;
-      elURL.value = '';
-      elTarget.value = '';
-      toggleControls(0);
-
-      // clear the ghost canvas for next time
-      clear(gctx);
-      // invalidate because we might need the selection border to disappear
-      invalidate();
+      map.deselect();
     }
   };
 
-  canvas.onmouseup = function () {
-    isDrag = false;
-    isResizeDrag = false;
-    expectResize = -1;
+  document.body.onmouseup = function () {
+    if (status !== Status.IDLE) updateGenerated(map);
+    status = Status.IDLE;
+    currentAnchor = -1;
+    this.classList.remove('state-dragging', 'state-resizing');
   };
 
-  canvas.ondblclick = function (e) {
-    getMouse(e);
-    addRect(mouseX - 10, mouseY - 10, 20, 20);
-  };
-
-  canvas.onmousemove = function (e) {
-
-    if (isDrag) {
-      getMouse(e);
-      selectedArea.attrs({ x: mouseX - offsetX, y: mouseY - offsetY });
-      invalidate();
-    } else if (isResizeDrag) {
-      var x = selectedArea.x;
-      var y = selectedArea.y;
-      var w = selectedArea.w;
-      var h = selectedArea.h;
-      var newAttrs = [
-        { x: mouseX, y: mouseY, w: w + (x - mouseX), h: h + (y - mouseY) },
-        { y: mouseY, h: h + (y - mouseY) },
-        { y: mouseY, w: mouseX - x, h: h + (y - mouseY) },
-        { x: mouseX, w: w + (x - mouseX) },
-        { w: mouseX - x },
-        { x: mouseX, w: w + (x - mouseX), h: mouseY - y },
-        { h: mouseY - y },
-        { w: mouseX - x, h: mouseY - y }
-      ];
-
-      selectedArea.attrs(newAttrs[expectResize]);
-      invalidate();
-    }
+  document.body.onmousemove = function (e) {
 
     getMouse(e);
-    // if there's a selection see if we grabbed one of the selection handles
-    if (selectedArea && !isResizeDrag) {
+
+    if (status === Status.DRAGGING) {
+      map.selected.attrs({ x: mouseX - offsetX, y: mouseY - offsetY });
+      map.redraw = true;
+    } else if (status === Status.RESIZING) {
+      map.selected.resize(currentAnchor);
+    } else if (map.selected) {
+      // see if we're hovering over an anchor
       for (var i=8; i--;) {
-        var anchor = selectionHandles[i];
+        var anchor = map.selected.anchors[i];
 
         // we dont need to use the ghost context because
         // selection handles will always be rectangles
-        if (mouseX >= anchor.x && mouseX <= anchor.x + anchorSize &&
-            mouseY >= anchor.y && mouseY <= anchor.y + anchorSize) {
+        if (mouseX >= anchor.x && mouseX <= anchor.x + Rect.ANCHOR_SIZE &&
+            mouseY >= anchor.y && mouseY <= anchor.y + Rect.ANCHOR_SIZE) {
           // we found one!
-          expectResize = i;
-          invalidate();
+          currentAnchor = i;
+          map.redraw = true;
           this.style.cursor = cursors[i];
           return;
         }
-
       }
-      // not over a selection box, return to normal
-      isResizeDrag = false;
-      expectResize = -1;
-      this.style.cursor = 'auto';
+      currentAnchor = -1;
+      this.style.cursor = map.selected.isWithin(mouseX, mouseY) ? 'move' : 'auto';
+    }
+  };
+
+  document.body.ondragover = function (e) {
+    e.preventDefault();
+    this.className = 'state-dragover';
+  };
+
+  document.body.ondragend = function (e) { e.preventDefault(); };
+
+  document.body.ondrop = function (e) {
+    e.preventDefault();
+    this.className = 'state-started';
+    reader.readAsDataURL(e.dataTransfer.files[0]);
+  };
+
+  document.body.onkeydown = function (e) {
+    if ((e.keyCode === 8 || e.keyCode === 46) && map.selected) {
+      e.preventDefault();
+      map.rects.splice(map.rects.indexOf(map.selected), 1);
+      map.selected = null;
+      map.redraw = true;
     }
   };
 
   reader.onload = function (e) {
-    currentImage.src = e.target.result;
-    boxes = [];
-    canvas.removeAttribute('hidden');
-    isImageDifferent = true;
-    invalidate();
+    map.load(e.target.result);
   };
 
-  elDroppable.ondragover = function (e) {
-    e.preventDefault();
-    this.className = 'drag-over';
-  };
-
-  elDroppable.ondragend = function (e) {
-    e.preventDefault();
-  };
-
-  elDroppable.ondrop = function (e) {
-    e.preventDefault();
-    this.className = 'has-image';
-    reader.readAsDataURL(e.dataTransfer.files[0]);
-  };
-
-  elURL.onkeyup = function () {
-    if (selectedArea)
-      selectedArea.href = this.value;
-  };
-
-  elTarget.onchange = function () {
-    if (selectedArea)
-      selectedArea.target = this.value;
-  };
-
-  function updateGenerated() {
-    var html = getHTML();
-    elGenerated.innerHTML = '<pre>' + html.replace(/</g, '&lt;')
-                                          .replace(/>/g, '&gt;') + '</pre>';
+  for (var i=fields.length; i--;) {
+    document.getElementById(fields[i]).onkeydown = function () {
+      var attrs = {};
+      attrs[this.id] = this.value;
+      map.selected.attrs(attrs);
+      map.redraw = true;
+    };
   }
+
+  window.onload = function () {
+    // fixes mouse co-ordinate problems when there's a border or padding
+    // see getMouse for more detail
+    if (document.defaultView && document.defaultView.getComputedStyle) {
+      var style = document.defaultView.getComputedStyle(canvas, null);
+      stylePaddingLeft = +style.paddingLeft || 0;
+      stylePaddingTop = +style.paddingTop || 0;
+      styleBorderLeft = +style.borderLeftWidth || 0;
+      styleBorderTop = +style.borderTopWidth || 0;
+    }
+
+    var redraw = function () {
+      map.draw();
+      window.requestAnimationFrame(redraw);
+    };
+
+    window.requestAnimationFrame(redraw);
+    window.map = map;
+  };
 
 }());

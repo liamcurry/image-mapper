@@ -3,40 +3,47 @@
 <title>Image Mapper</title>
 <link rel=stylesheet href=css/master.css>
 
-<div id=images>
-  <canvas id=mapper></canvas>
-  <p id=empty>Drag and drop an image to begin.
-</div>
-<div id=results>
-  <ul id=options style=display:none>
-    <li>
-      <label for=form-base64>Base64 Encode Image</label>
-      <input id=form-base64 name=base64 type=checkbox>
-  </ul>
-  <div id=generated></div>
+<h1>Image Mapper</h1>
+<div id=state-intro>
+  <p>Drag and drop an image to begin.
 </div>
 
-<ul id=controls>
-  <li>
-    <label for=url>URL</label>
-    <input id=url type=url>
-    <label for=target>Target</label>
-    <select id=target>
-      <option selected>_blank
-      <option>_self
-    </select>
-  <li>
-    <label for=x>X</label>
-    <input id=x type=number min=0>
-    <label for=y>Y</label>
-    <input id=y type=number min=0>
-  <li>
-    <label for=w>W</label>
-    <input id=w type=number min=0>
-    <label for=h>H</label>
-    <input id=h type=number min=0>
-</ul>
+<div id=state-started>
+  <div id=mapper-container>
+    <canvas id=mapper></canvas>
+  </div>
+  <div id=results>
+    <form id=selected>
+      <ul id=controls>
+        <li>
+          <label for=url>URL</label>
+          <input id=url type=url>
+          <label for=target>Target</label>
+          <select id=target>
+            <option selected>_blank
+            <option>_self
+          </select>
+        <li>
+          <label for=x>X</label>
+          <input id=x type=number min=0>
+          <label for=y>Y</label>
+          <input id=y type=number min=0>
+        <li>
+          <label for=width>W</label>
+          <input id=width type=number min=0>
+          <label for=height>H</label>
+          <input id=height type=number min=0>
+      </ul>
+      <a href=# id=delete>Delete</a>
+      <a href=# id=add>Add</a>
+    </form>
+    <ul id=options style=display:none>
+      <li>
+        <label for=form-base64>Base64 Encode Image</label>
+        <input id=form-base64 name=base64 type=checkbox>
+    </ul>
+    <textarea id=generated></textarea>
+  </div>
+</div>
 
-<script src=//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.2/jquery.min.js></script>
-<script src=//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.0.0/backbone-min.js></script>
 <script src=js/main.js></script>
