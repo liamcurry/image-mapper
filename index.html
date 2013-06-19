@@ -22,28 +22,29 @@
   <section class=section id=selection>
     <h2 class=header>Selection</h2>
     <form class=content id=selected>
-      <ul id=urls>
-        <li>
+      <ul>
+        <li id=field-url>
           <label for=url>URL</label>
           <input id=url>
-        <li>
+        <li id=field-alt>
+          <label for=alt>Alt text</label>
+          <input id=alt>
+        <li id=field-target>
           <label for=target>Target</label>
           <select id=target>
             <option selected>_blank
             <option>_self
           </select>
-      </ul>
-      <ul id=numbers>
-        <li>
+        <li id=field-x>
           <label for=x>X</label>
           <input id=x type=number min=0>
-        <li>
+        <li id=field-y>
           <label for=y>Y</label>
           <input id=y type=number min=0>
-        <li>
+        <li id=field-height>
           <label for=height>Height</label>
           <input id=height type=number min=0>
-        <li>
+        <li id=field-width>
           <label for=width>Width</label>
           <input id=width type=number min=0>
       </ul>

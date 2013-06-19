@@ -41,7 +41,6 @@
   };
 
   Map.prototype.remove = function (index) {
-    console.log(index || this.rects.indexOf(this.selected));
     this.rects.splice(index || this.rects.indexOf(this.selected), 1);
     this.selected = null;
     this.redraw = true;
@@ -109,6 +108,7 @@
     this.f = f || '#444444';
     this.url = '#';
     this.target = '_blank';
+    this.alt = '';
   }
 
   Rect.DEFAULT_SIZE = 20;
@@ -230,8 +230,11 @@
   };
 
   Rect.prototype.toHTML = function () {
-    return ['<area coords=', this.getCoords(), ' href=',
-            this.url, ' target=', this.target, '>'].join('');
+    return ['<area coords="', this.getCoords(),
+            '" href="', this.url,
+            '" target="', this.target,
+            '" alt="', this.alt,
+            '">'].join('');
   };
 
   function toggleControls(shouldEnable) {
@@ -244,7 +247,8 @@
     if (map.selected) {
       for (var fieldName, i=fields.length; i--;) {
         fieldName = fields[i];
-        map.form[fieldName].value = map.selected[fieldName];
+        if (map.form[fieldName].value != map.selected[fieldName])
+          map.form[fieldName].value = map.selected[fieldName];
       }
     }
   }
@@ -294,6 +298,8 @@
     // set our events. Up and down are for dragging,
     // double click is for making new rects
     document.body.onmousedown = function (e) {
+      if (e.target.id === 'remove') return map.remove();
+      if (e.target.id === 'add') return map.add(new Rect());
       if (fields.indexOf(e.target.id) >= 0) return;
 
       //we are over a selection rect
@@ -315,7 +321,7 @@
     };
 
     document.body.onmouseup = function () {
-      if (status !== Status.IDLE) updateGenerated(map);
+      updateGenerated(map);
       status = Status.IDLE;
       currentAnchor = -1;
       this.classList.remove('state-dragging', 'state-resizing');
@@ -364,20 +370,11 @@
     };
 
     document.body.onkeydown = function (e) {
-      if ((e.keyCode === 8 || e.keyCode === 46) && map.selected) {
+      if ((e.keyCode === 8 || e.keyCode === 46) && map.selected &&
+          fields.indexOf(e.target.id) < 0) {
         e.preventDefault();
         map.remove();
       }
-    };
-
-    document.getElementById('add').onclick = function (e) {
-      e.preventDefault();
-      map.add(new Rect());
-    };
-
-    document.getElementById('remove').onclick = function (e) {
-      e.preventDefault();
-      map.remove();
     };
 
     reader.onload = function (e) {
@@ -385,13 +382,19 @@
       document.body.className = 'state-started';
     };
 
+    function updateField() {
+      var attrs = {};
+      if (!this.value || !map.selected) return;
+      attrs[this.id] = this.value;
+      map.selected.attrs(attrs);
+      map.redraw = true;
+      updateGenerated(map);
+    }
+
     for (var i=fields.length; i--;) {
-      document.getElementById(fields[i]).onkeydown = function () {
-        var attrs = {};
-        attrs[this.id] = this.value;
-        map.selected.attrs(attrs);
-        map.redraw = true;
-      };
+      var field = document.getElementById(fields[i]);
+      field.onkeyup = updateField;
+      field.onchange = updateField;
     }
 
     var redraw = function () {
