@@ -15,13 +15,17 @@
   var elControls = document.getElementById('controls');
   var fields = ['x', 'y', 'width', 'height', 'url', 'target'];
   var offsetX, offsetY, mouseX, mouseY;
-  var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
 
   function Map(canvas, form) {
     this.canvas = canvas;
     this.form = form;
     this.context = canvas.getContext('2d');
     this.image = new Image();
+    this.image.onload = function () {
+      canvas.width = this.width;
+      canvas.height = this.height;
+      canvas.style.background = 'url(' + this.src + ')';
+    };
     this.reset();
   }
 
@@ -34,18 +38,17 @@
   Map.prototype.load = function (imageData) {
     this.reset();
     this.image.src = imageData;
-    this.canvas.width = this.image.width;
-    this.canvas.height = this.image.height;
-    this.canvas.style.background = 'url(' + imageData + ')';
   };
 
   Map.prototype.remove = function (index) {
+    console.log(index || this.rects.indexOf(this.selected));
     this.rects.splice(index || this.rects.indexOf(this.selected), 1);
     this.selected = null;
     this.redraw = true;
   };
 
   Map.prototype.add = function (area) {
+    area.canvas = this.canvas;
     this.rects.push(area);
     this.select(area);
   };
@@ -62,13 +65,13 @@
       this.form[fieldName].value = this.selected[fieldName];
     }
 
-    toggleControls(1);
+    //toggleControls(1);
     this.redraw = true;
   };
 
   Map.prototype.deselect = function () {
     this.selected = null;
-    toggleControls(0);
+    //toggleControls(0);
     this.redraw = true;
   };
 
@@ -134,7 +137,6 @@
     context.fillRect(this.x, this.y, this.width, this.height);
 
     if (selected === this) {
-
       context.strokeStyle = Rect.ANCHOR_STROKE;
       context.lineWidth = 2;
       context.strokeRect(this.x, this.y, this.width, this.height);
@@ -197,6 +199,7 @@
         this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, this.canvas.width - this.width));
       }
     }
+
     if ('y' in attrs) {
       if (shouldStretch) {
         var oldY = this.y;
@@ -227,32 +230,17 @@
   };
 
   Rect.prototype.toHTML = function () {
-    return '<area coords=' + this.getCoords() + ' href=' + this.url +
-           ' target=' + this.target + '>';
+    return ['<area coords=', this.getCoords(), ' href=',
+            this.url, ' target=', this.target, '>'].join('');
   };
 
   function toggleControls(shouldEnable) {
     elControls.className = shouldEnable ? 'enabled' : 'disabled';
   }
 
-  function getMouse(e, canvas) {
-    var el = canvas;
-    var offsetX = stylePaddingLeft + styleBorderLeft;
-    var offsetY = stylePaddingTop + styleBorderTop;
-
-    do {
-      offsetX += el.offsetLeft;
-      offsetY += el.offsetTop;
-    } while (el = el.offsetParent);
-
-    mouseX = Math.max(0, e.pageX - offsetX);
-    mouseY = Math.max(0, e.pageY - offsetY);
-  }
-
   function updateGenerated(map) {
     var html = map.toHTML();
-    elGenerated.innerHTML = '<pre>' + html.replace(/</g, '&lt;')
-                                          .replace(/>/g, '&gt;') + '</pre>';
+    elGenerated.innerHTML = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
     if (map.selected) {
       for (var fieldName, i=fields.length; i--;) {
         fieldName = fields[i];
@@ -268,6 +256,21 @@
     var reader = new FileReader();
     var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
     var status = Status.IDLE;
+    var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
+
+    function getMouse(e, canvas) {
+      var el = canvas;
+      var offsetX = stylePaddingLeft + styleBorderLeft;
+      var offsetY = stylePaddingTop + styleBorderTop;
+
+      do {
+        offsetX += el.offsetLeft;
+        offsetY += el.offsetTop;
+      } while (el = el.offsetParent);
+
+      mouseX = Math.max(0, e.pageX - offsetX);
+      mouseY = Math.max(0, e.pageY - offsetY);
+    }
 
     // fixes mouse co-ordinate problems when there's a border or padding
     // see getMouse for more detail
@@ -357,7 +360,6 @@
 
     document.body.ondrop = function (e) {
       e.preventDefault();
-      this.className = 'state-started';
       reader.readAsDataURL(e.dataTransfer.files[0]);
     };
 
@@ -368,8 +370,19 @@
       }
     };
 
+    document.getElementById('add').onclick = function (e) {
+      e.preventDefault();
+      map.add(new Rect());
+    };
+
+    document.getElementById('remove').onclick = function (e) {
+      e.preventDefault();
+      map.remove();
+    };
+
     reader.onload = function (e) {
       map.load(e.target.result);
+      document.body.className = 'state-started';
     };
 
     for (var i=fields.length; i--;) {

@@ -1,39 +1,32 @@
 @import 'nib'
 
-collapsed-results-height = 100px
-
 *
   box-sizing border-box
   margin 0
   padding 0
 
-html, body, #container, #started
+html, body, #tabs, #sidebar
   height 100%
 
 body
   background #ebebeb
   color #333
   font-family Helvetica, Arial, sans-serif
-
-  &.state-dragover
-
-    #state-intro
-
-      p
-        border-color green
-
-  &.state-started
-
-    #state-intro
-      display none
-
-    #state-started
-      display block
+  line-height 20px
+  margin 10px
 
   &.state-dragging, &.state-resizing
 
     *
       user-select none
+
+  &.state-started
+
+    canvas
+      display block
+
+    .empty
+      display none
 
 h1
   margin 0 0 30px
@@ -42,54 +35,89 @@ h1
 a
   color #0088cc
 
-well()
-  background #fff
-  border 1px solid #ccc
-  border-radius 5px
-  box-shadow 0 3px 3px #ccc
-  padding 20px
+canvas
+  display none
+  margin 0 auto
 
-#content
-  padding 40px 0 collapsed-results-height + 20px
-
-#state-intro
-  well()
-  font-size 18px
-  font-weight bold
-  margin 200px auto 0
-  max-width 600px
+.empty
+  padding 40px 0
   text-align center
 
-  p
-    border 1px dashed #ebebeb
-    padding 100px 0
-
-#state-started
-  display none
-  padding 50px
-
-#form-controls
-  background red
-  display none
-  left 0
-  padding 5px
-  position absolute
-  top 0
-
-  #form-url
-    width 150px
-
-#mapper-container
-  well()
-
-#mapper
-  display block
-  margin 0 auto
-  user-select none
-
-#generated
-  display block
-  font-size 22px
-  height 200px
-  margin 20px auto
+#tabs
+  float left
+  padding-right 10px
   width 60%
+
+  #tabs-nav
+
+    a
+      padding 5px 30px
+
+      &.selected
+        background #fff
+
+  .tab
+    display none
+
+  .tab.selected
+    display block
+
+#sidebar
+  float left
+  width 40%
+
+  #selection
+
+    ul
+      clear both
+      overflow hidden
+
+    li
+      float left
+      list-style none
+
+    label, input, select, option, textarea
+      display block
+      padding 5px
+      height 30px
+      width 100%
+
+    select, option
+      line-height 30px
+
+  #numbers li
+    padding-right 10px
+    width 25%
+
+    &:last-child
+      padding-right 0
+
+  #urls li
+
+    &:first-child
+      padding-right 10px
+      width 75%
+
+    &:last-child
+      width 25%
+
+  #generated
+    width 100%
+
+.section
+  overflow hidden
+  margin-bottom 20px
+
+  .header
+    background #fff
+    float left
+    font-size 14px
+    padding 10px
+    clear both
+    overflow hidden
+
+  .content
+    background #fff
+    float left
+    padding 10px
+    width 100%

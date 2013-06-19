@@ -4,46 +4,61 @@
 <link rel=stylesheet href=css/master.css>
 
 <h1>Image Mapper</h1>
-<div id=state-intro>
-  <p>Drag and drop an image to begin.
+<div class=section id=tabs>
+  <nav class=header id=tabs-nav>
+    <a href=#edit class=selected>Edit</a>
+    <a href=#preview>Preview</a>
+  </nav>
+  <div class=content id=tabs-content>
+    <div class="selected tab" id=edit>
+      <canvas id=mapper></canvas>
+      <p class=empty>Drag and drop an image to begin.
+    </div>
+    <div class=tab id=preview></div>
+  </div>
 </div>
 
-<div id=state-started>
-  <div id=mapper-container>
-    <canvas id=mapper></canvas>
-  </div>
-  <div id=results>
-    <form id=selected>
-      <ul id=controls>
+<div id=sidebar>
+  <section class=section id=selection>
+    <h2 class=header>Selection</h2>
+    <form class=content id=selected>
+      <ul id=urls>
         <li>
           <label for=url>URL</label>
-          <input id=url type=url>
+          <input id=url>
+        <li>
           <label for=target>Target</label>
           <select id=target>
             <option selected>_blank
             <option>_self
           </select>
+      </ul>
+      <ul id=numbers>
         <li>
           <label for=x>X</label>
           <input id=x type=number min=0>
+        <li>
           <label for=y>Y</label>
           <input id=y type=number min=0>
         <li>
-          <label for=width>W</label>
-          <input id=width type=number min=0>
-          <label for=height>H</label>
+          <label for=height>Height</label>
           <input id=height type=number min=0>
+        <li>
+          <label for=width>Width</label>
+          <input id=width type=number min=0>
       </ul>
-      <a href=# id=delete>Delete</a>
-      <a href=# id=add>Add</a>
+      <a class=button id=remove href=#>Remove selected</a>
+      <a class=button id=add href=#>Add another</a>
     </form>
-    <ul id=options style=display:none>
-      <li>
-        <label for=form-base64>Base64 Encode Image</label>
-        <input id=form-base64 name=base64 type=checkbox>
-    </ul>
-    <textarea id=generated></textarea>
-  </div>
+  </section>
+  <section class=section id=code>
+    <h2 class=header>Code</h2>
+    <div class=content>
+      <label for=form-base64>Base64</label>
+      <input id=form-base64 name=base64 type=checkbox>
+      <textarea id=generated readonly></textarea>
+    </div>
+  </section>
 </div>
 
 <script src=js/main.js></script>
