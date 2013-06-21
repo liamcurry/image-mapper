@@ -5,14 +5,14 @@
   margin 0
   padding 0
 
-html, body, #tabs, #sidebar
+html, body
   height 100%
 
 body
   background #ebebeb
   color #333
   font-family Helvetica, Arial, sans-serif
-  line-height 20px
+  line-height 30px
   margin 10px
 
   &.state-dragging, &.state-resizing
@@ -44,9 +44,7 @@ canvas
   text-align center
 
 #tabs
-  float left
   padding-right 10px
-  width 60%
 
   #tabs-nav
 
@@ -62,53 +60,71 @@ canvas
   .tab.selected
     display block
 
-#sidebar
-  float left
-  width 40%
+#selection
 
-  #selection
+  ul
+    clear both
+    overflow hidden
 
-    ul
-      clear both
-      overflow hidden
+  li
+    float left
+    list-style none
 
-    li
-      float left
-      list-style none
+  label
+    display block
+    font-size 14px
+    font-weight 700
+    line-height 30px
 
-    label, input, select, option, textarea
-      display block
-      padding 5px
-      height 30px
-      width 100%
-
-    select, option
-      line-height 30px
-
-  #numbers li
-    padding-right 10px
-    width 25%
-
-    &:last-child
-      padding-right 0
-
-  #urls li
-
-    &:first-child
-      padding-right 10px
-      width 75%
-
-    &:last-child
-      width 25%
-
-  #generated
+  input, select, option, textarea
+    display block
+    padding 5px
+    height 30px
     width 100%
 
-.section
+#preview
+
+  .content
+
+    img
+      display block
+      margin 0 auto
+
+#edit, #selection
+  padding-right 10px
+
+#generated
+  width 100%
+
+.button
+  display block
+  float left
+  padding 10px
+
+#field-url
+  padding-right 10px
+  width 75%
+
+#field-target
+  width 25%
+
+#field-alt
+  width 100%
+
+#field-x, #field-y, #field-width, #field-height
+  padding-right 10px
+  width 25%
+
+  &:last-child
+    padding-right 0
+
+section
+  float left
   overflow hidden
   margin-bottom 20px
+  width 50%
 
-  .header
+  h2
     background #fff
     float left
     font-size 14px

@@ -1,30 +1,30 @@
 (function () {
 
-  window.requestAnimationFrame = window.requestAnimationFrame ||
-    window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||
-    window.msRequestAnimationFrame || window.oRequestAnimationFrame;
-
-  // will save the # of the selection handle if the mouse is over one.
   var currentAnchor = -1;
-  var Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
   var cursors = [
     'nw-resize', 'n-resize', 'ne-resize', 'w-resize',
     'e-resize', 'sw-resize', 's-resize', 'se-resize'
   ];
   var elGenerated = document.getElementById('generated');
   var elControls = document.getElementById('controls');
-  var fields = ['x', 'y', 'width', 'height', 'url', 'target'];
-  var offsetX, offsetY, mouseX, mouseY;
+  var fields = ['x', 'y', 'width', 'height', 'url', 'target', 'alt'];
+  var mouseX, mouseY;
+  var updateGeneratedThrottle;
 
-  function Map(canvas, form) {
+  function Map(canvas, preview, form) {
+    var _this = this;
     this.canvas = canvas;
+    this.preview = preview;
     this.form = form;
+    this.base64 = true;
     this.context = canvas.getContext('2d');
     this.image = new Image();
     this.image.onload = function () {
       canvas.width = this.width;
       canvas.height = this.height;
       canvas.style.background = 'url(' + this.src + ')';
+      preview.innerHTML = _this.toHTML(true).innerHTML;
+      updateGenerated(_this);
     };
     this.reset();
   }
@@ -54,23 +54,13 @@
 
   Map.prototype.select = function (area) {
     this.selected = area;
-    offsetX = mouseX - this.selected.x;
-    offsetY = mouseY - this.selected.y;
-    this.selected.x = mouseX - offsetX;
-    this.selected.y = mouseY - offsetY;
-
-    for (var fieldName, i=fields.length; i--;) {
-      fieldName = fields[i];
-      this.form[fieldName].value = this.selected[fieldName];
-    }
-
-    //toggleControls(1);
+    this.toggleControls(true);
     this.redraw = true;
   };
 
   Map.prototype.deselect = function () {
     this.selected = null;
-    //toggleControls(0);
+    this.toggleControls(false);
     this.redraw = true;
   };
 
@@ -87,16 +77,28 @@
   };
 
   Map.prototype.toHTML = function (useBase64) {
-    var html = [
-      '<img src="' +
-      (useBase64 ? this.image.src : '//YOUR.LINK.TO/IMG.PNG') +
-      '" usethis=this height=' + this.canvas.height + ' width=' + this.canvas.width + '>',
-      '<map name=map id=map>'
-    ];
+    var div = document.createElement('div');
+    var map = document.createElement('map');
+    var image = this.image;
+    if (!useBase64) {
+      image = new Image();
+      image.width = this.image.width;
+      image.height = this.image.height;
+    }
+    map.id = map.name = image.useMap = 'map';
     for (var i=this.rects.length; i--;)
-      html.push(this.rects[i].toHTML());
-    html.push('</map>');
-    return html.join('\n');
+      map.appendChild(this.rects[i].toHTML());
+    div.appendChild(image);
+    div.appendChild(map);
+    return div;
+  };
+
+  Map.prototype.toggleControls = function (shouldEnable) {
+    for (var fieldName, i=fields.length; i--;) {
+      fieldName = fields[i];
+      this.form[fieldName].value = shouldEnable ? this.selected[fieldName] : '';
+      this.form[fieldName].disabled = !shouldEnable;
+    }
   };
 
   function Rect(canvas, x, y, width, height, f) {
@@ -115,6 +117,7 @@
   Rect.ANCHOR_SIZE = 6;
   Rect.ANCHOR_STROKE = '#cc0000';
   Rect.ANCHOR_FILL = 'darkred';
+  Rect.Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
   Rect.prototype.anchors = function () {
     var x = this.x - Rect.ANCHOR_SIZE / 2;
@@ -138,7 +141,7 @@
 
     if (selected === this) {
       context.strokeStyle = Rect.ANCHOR_STROKE;
-      context.lineWidth = 2;
+      context.lineWidth = 1;
       context.strokeRect(this.x, this.y, this.width, this.height);
       context.fillStyle = Rect.ANCHOR_FILL;
 
@@ -156,28 +159,28 @@
     var attrs = {};
 
     switch (anchor) {
-    case Anchors.NW:
+    case Rect.Anchors.NW:
       attrs = { y: mouseY, x: mouseX };
       break;
-    case Anchors.N:
+    case Rect.Anchors.N:
       attrs = { y: mouseY };
       break;
-    case Anchors.NE:
+    case Rect.Anchors.NE:
       attrs = { y: mouseY, width: mouseX - x };
       break;
-    case Anchors.E:
+    case Rect.Anchors.E:
       attrs = { width: mouseX - x };
       break;
-    case Anchors.SE:
+    case Rect.Anchors.SE:
       attrs = { width: mouseX - x, height: mouseY - y };
       break;
-    case Anchors.S:
+    case Rect.Anchors.S:
       attrs = { height: mouseY - y };
       break;
-    case Anchors.SW:
+    case Rect.Anchors.SW:
       attrs = { x: mouseX, height: mouseY - y };
       break;
-    case Anchors.W:
+    case Rect.Anchors.W:
       attrs = { x: mouseX };
       break;
     }
@@ -230,20 +233,27 @@
   };
 
   Rect.prototype.toHTML = function () {
-    return ['<area coords="', this.getCoords(),
-            '" href="', this.url,
-            '" target="', this.target,
-            '" alt="', this.alt,
-            '">'].join('');
+    var area = document.createElement('area');
+    area.coords = this.getCoords();
+    area.href = this.url;
+    area.target = this.target;
+    area.alt = this.alt;
+    return area;
   };
 
-  function toggleControls(shouldEnable) {
-    elControls.className = shouldEnable ? 'enabled' : 'disabled';
-  }
-
   function updateGenerated(map) {
-    var html = map.toHTML();
-    elGenerated.innerHTML = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    if (updateGeneratedThrottle) {
+      return;
+    } else {
+      updateGeneratedThrottle = true;
+      setTimeout(function () {
+        updateGeneratedThrottle = false;
+      }, 1000);
+    }
+    var div = map.toHTML(map.base64);
+    elGenerated.innerHTML = div.innerHTML;
+    map.preview.getElementsByTagName('map')[0].innerHTML =
+      div.getElementsByTagName('map')[0].innerHTML;
     if (map.selected) {
       for (var fieldName, i=fields.length; i--;) {
         fieldName = fields[i];
@@ -255,12 +265,15 @@
 
   window.onload = function () {
     var canvas = document.getElementById('mapper');
+    var preview = document.getElementById('preview')
+                          .getElementsByClassName('content')[0];
     var form = document.getElementById('selected');
-    var map = window.map = new Map(canvas, form);
+    var map = window.map = new Map(canvas, preview, form);
     var reader = new FileReader();
     var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
     var status = Status.IDLE;
     var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
+    var offsetX, offsetY;
 
     function getMouse(e, canvas) {
       var el = canvas;
@@ -297,7 +310,7 @@
 
     // set our events. Up and down are for dragging,
     // double click is for making new rects
-    document.body.onmousedown = function (e) {
+    canvas.onmousedown = function (e) {
       if (e.target.id === 'remove') return map.remove();
       if (e.target.id === 'add') return map.add(new Rect());
       if (fields.indexOf(e.target.id) >= 0) return;
@@ -311,7 +324,11 @@
           if (map.rects[i].isWithin(mouseX, mouseY)) {
             status = Status.DRAGGING;
             this.classList.add('state-dragging');
-            return map.select(map.rects[i]);
+            if (map.selected !== map.rects[i])
+              map.select(map.rects[i]);
+            offsetX = mouseX - map.selected.x;
+            offsetY = mouseY - map.selected.y;
+            return;
           }
         }
         // havent returned means we have selected nothing
@@ -321,10 +338,12 @@
     };
 
     document.body.onmouseup = function () {
-      updateGenerated(map);
-      status = Status.IDLE;
-      currentAnchor = -1;
-      this.classList.remove('state-dragging', 'state-resizing');
+      if (status !== Status.IDLE) {
+        updateGenerated(map);
+        status = Status.IDLE;
+        currentAnchor = -1;
+        this.classList.remove('state-dragging', 'state-resizing');
+      }
     };
 
     document.body.onmousemove = function (e) {
@@ -377,6 +396,11 @@
       }
     };
 
+    document.getElementById('base64').onchange = function () {
+      map.base64 = this.checked;
+      updateGenerated(map);
+    };
+
     reader.onload = function (e) {
       map.load(e.target.result);
       document.body.className = 'state-started';
@@ -397,10 +421,15 @@
       field.onchange = updateField;
     }
 
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+      window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||
+      window.msRequestAnimationFrame || window.oRequestAnimationFrame;
+
     var redraw = function () {
       map.draw();
       window.requestAnimationFrame(redraw);
     };
+
     window.requestAnimationFrame(redraw);
   };
 

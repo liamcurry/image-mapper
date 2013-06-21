@@ -1,6 +1,6 @@
 *{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
-html,body,#tabs,#sidebar{height:100%}
-body{background:#ebebeb;color:#333;font-family:Helvetica,Arial,sans-serif;line-height:20px;margin:10px;}
+html,body{height:100%}
+body{background:#ebebeb;color:#333;font-family:Helvetica,Arial,sans-serif;line-height:30px;margin:10px;}
 body.state-dragging *,body.state-resizing *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
 body.state-started canvas{display:block}
 body.state-started .empty{display:none}
@@ -8,21 +8,24 @@ h1{margin:0 0 30px;text-shadow:1px 0 0 #fff}
 a{color:#08c}
 canvas{display:none;margin:0 auto}
 .empty{padding:40px 0;text-align:center}
-#tabs{float:left;padding-right:10px;width:60%;}
+#tabs{padding-right:10px;}
 #tabs #tabs-nav a{padding:5px 30px;}
 #tabs #tabs-nav a.selected{background:#fff}
 #tabs .tab{display:none}
 #tabs .tab.selected{display:block}
-#sidebar{float:left;width:40%;}
-#sidebar #selection ul{clear:both;overflow:hidden}
-#sidebar #selection li{float:left;list-style:none}
-#sidebar #selection label,#sidebar #selection input,#sidebar #selection select,#sidebar #selection option,#sidebar #selection textarea{display:block;padding:5px;height:30px;width:100%}
-#sidebar #selection select,#sidebar #selection option{line-height:30px}
-#sidebar #numbers li{padding-right:10px;width:25%;}
-#sidebar #numbers li:last-child{padding-right:0}
-#sidebar #urls li:first-child{padding-right:10px;width:75%}
-#sidebar #urls li:last-child{width:25%}
-#sidebar #generated{width:100%}
-.section{overflow:hidden;margin-bottom:20px;}
-.section .header{background:#fff;float:left;font-size:14px;padding:10px;clear:both;overflow:hidden}
-.section .content{background:#fff;float:left;padding:10px;width:100%}
+#selection ul{clear:both;overflow:hidden}
+#selection li{float:left;list-style:none}
+#selection label{display:block;font-size:14px;font-weight:700;line-height:30px}
+#selection input,#selection select,#selection option,#selection textarea{display:block;padding:5px;height:30px;width:100%}
+#preview .content img{display:block;margin:0 auto}
+#edit,#selection{padding-right:10px}
+#generated{width:100%}
+.button{display:block;float:left;padding:10px}
+#field-url{padding-right:10px;width:75%}
+#field-target{width:25%}
+#field-alt{width:100%}
+#field-x,#field-y,#field-width,#field-height{padding-right:10px;width:25%;}
+#field-x:last-child,#field-y:last-child,#field-width:last-child,#field-height:last-child{padding-right:0}
+section{float:left;overflow:hidden;margin-bottom:20px;width:50%;}
+section h2{background:#fff;float:left;font-size:14px;padding:10px;clear:both;overflow:hidden}
+section .content{background:#fff;float:left;padding:10px;width:100%}

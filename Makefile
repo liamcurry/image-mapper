@@ -3,6 +3,7 @@ STYLUS = node node_modules/.bin/stylus
 all: clean build
 build: build_node
 clean: clean_osx clean_node
+watch: watch_css
 
 build_node:
 	npm install

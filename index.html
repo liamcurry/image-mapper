@@ -4,62 +4,63 @@
 <link rel=stylesheet href=css/master.css>
 
 <h1>Image Mapper</h1>
-<div class=section id=tabs>
-  <nav class=header id=tabs-nav>
-    <a href=#edit class=selected>Edit</a>
-    <a href=#preview>Preview</a>
-  </nav>
-  <div class=content id=tabs-content>
-    <div class="selected tab" id=edit>
-      <canvas id=mapper></canvas>
-      <p class=empty>Drag and drop an image to begin.
-    </div>
-    <div class=tab id=preview></div>
-  </div>
-</div>
 
-<div id=sidebar>
-  <section class=section id=selection>
-    <h2 class=header>Selection</h2>
-    <form class=content id=selected>
-      <ul>
-        <li id=field-url>
-          <label for=url>URL</label>
-          <input id=url>
-        <li id=field-alt>
-          <label for=alt>Alt text</label>
-          <input id=alt>
-        <li id=field-target>
-          <label for=target>Target</label>
-          <select id=target>
-            <option selected>_blank
-            <option>_self
-          </select>
-        <li id=field-x>
-          <label for=x>X</label>
-          <input id=x type=number min=0>
-        <li id=field-y>
-          <label for=y>Y</label>
-          <input id=y type=number min=0>
-        <li id=field-height>
-          <label for=height>Height</label>
-          <input id=height type=number min=0>
-        <li id=field-width>
-          <label for=width>Width</label>
-          <input id=width type=number min=0>
-      </ul>
-      <a class=button id=remove href=#>Remove selected</a>
-      <a class=button id=add href=#>Add another</a>
-    </form>
-  </section>
-  <section class=section id=code>
-    <h2 class=header>Code</h2>
-    <div class=content>
-      <label for=form-base64>Base64</label>
-      <input id=form-base64 name=base64 type=checkbox>
-      <textarea id=generated readonly></textarea>
-    </div>
-  </section>
-</div>
+<section id=edit>
+  <h2>Edit</h2>
+  <div class=content>
+    <canvas id=mapper></canvas>
+    <p class=empty>Drag and drop an image to begin.
+  </div>
+</section>
+
+<section id=preview>
+  <h2>Preview</h2>
+  <div class=content>
+    <p class=empty>Drag and drop an image to begin.
+  </div>
+</section>
+
+<section id=selection>
+  <h2 class=header>Selection</h2>
+  <form class=content id=selected>
+    <ul>
+      <li id=field-url>
+        <label for=url>URL</label>
+        <input id=url disabled>
+      <li id=field-target>
+        <label for=target>Target</label>
+        <select id=target disabled>
+          <option selected>_blank
+          <option>_self
+        </select>
+      <li id=field-alt>
+        <label for=alt>Alt text</label>
+        <input id=alt disabled>
+      <li id=field-x>
+        <label for=x>X</label>
+        <input id=x type=number min=0 disabled>
+      <li id=field-y>
+        <label for=y>Y</label>
+        <input id=y type=number min=0 disabled>
+      <li id=field-height>
+        <label for=height>Height</label>
+        <input id=height type=number min=0 disabled>
+      <li id=field-width>
+        <label for=width>Width</label>
+        <input id=width type=number min=0 disabled>
+    </ul>
+    <a class=button id=remove href=#>Remove selected</a>
+    <a class=button id=add href=#>Add another</a>
+  </form>
+</section>
+
+<section class=section id=code>
+  <h2 class=header>Code</h2>
+  <div class=content>
+    <label for=base64>Base64</label>
+    <input id=base64 type=checkbox checked>
+    <textarea id=generated readonly></textarea>
+  </div>
+</section>
 
 <script src=js/main.js></script>
