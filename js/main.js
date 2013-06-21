@@ -9,9 +9,8 @@
   var elControls = document.getElementById('controls');
   var fields = ['x', 'y', 'width', 'height', 'url', 'target', 'alt'];
   var mouseX, mouseY;
-  var updateGeneratedThrottle;
 
-  function Map(canvas, preview, form) {
+  var Map = function (canvas, preview, form) {
     var _this = this;
     this.canvas = canvas;
     this.preview = preview;
@@ -27,81 +26,85 @@
       updateGenerated(_this);
     };
     this.reset();
-  }
-
-  Map.prototype.reset = function () {
-    this.redraw = true;
-    this.selected = null;
-    this.rects = [];
   };
 
-  Map.prototype.load = function (imageData) {
-    this.reset();
-    this.image.src = imageData;
-  };
+  Map.prototype = {
 
-  Map.prototype.remove = function (index) {
-    this.rects.splice(index || this.rects.indexOf(this.selected), 1);
-    this.selected = null;
-    this.redraw = true;
-  };
+    'reset': function () {
+      this.redraw = true;
+      this.selected = null;
+      this.rects = [];
+    },
 
-  Map.prototype.add = function (area) {
-    area.canvas = this.canvas;
-    this.rects.push(area);
-    this.select(area);
-  };
+    'load': function (imageData) {
+      this.reset();
+      this.image.src = imageData;
+    },
 
-  Map.prototype.select = function (area) {
-    this.selected = area;
-    this.toggleControls(true);
-    this.redraw = true;
-  };
+    'remove': function (index) {
+      this.rects.splice(index || this.rects.indexOf(this.selected), 1);
+      this.selected = null;
+      this.redraw = true;
+    },
 
-  Map.prototype.deselect = function () {
-    this.selected = null;
-    this.toggleControls(false);
-    this.redraw = true;
-  };
+    'add': function (area) {
+      area.canvas = this.canvas;
+      this.rects.push(area);
+      this.select(area);
+    },
 
-  Map.prototype.clear = function () {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  };
+    'select': function (area) {
+      this.selected = area;
+      this.toggleControls(true);
+      this.redraw = true;
+    },
 
-  Map.prototype.draw = function () {
-    if (!this.redraw) return;
-    this.clear();
-    for (var i=this.rects.length; i--;)
-      this.rects[i].draw(this.context, this.selected);
-    this.redraw = false;
-  };
+    'deselect': function () {
+      this.selected = null;
+      this.toggleControls(false);
+      this.redraw = true;
+    },
 
-  Map.prototype.toHTML = function (useBase64) {
-    var div = document.createElement('div');
-    var map = document.createElement('map');
-    var image = this.image;
-    if (!useBase64) {
-      image = new Image();
-      image.width = this.image.width;
-      image.height = this.image.height;
+    'clear': function () {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+
+    'draw': function () {
+      if (!this.redraw) return;
+      this.clear();
+      for (var i=this.rects.length; i--;)
+        this.rects[i].draw(this.context, this.selected);
+      this.redraw = false;
+    },
+
+    'toHTML': function (useBase64) {
+      var div = document.createElement('div');
+      var map = document.createElement('map');
+      var image = this.image;
+      if (!useBase64) {
+        image = new Image();
+        image.width = this.image.width;
+        image.height = this.image.height;
+      }
+      map.id = map.name = image.useMap = 'map';
+      for (var i=this.rects.length; i--;)
+        map.appendChild(this.rects[i].toHTML());
+      div.appendChild(image);
+      div.appendChild(map);
+      return div;
+    },
+
+    'toggleControls': function (shouldEnable) {
+      for (var fieldName, i=fields.length; i--;) {
+        fieldName = fields[i];
+        this.form[fieldName].value = shouldEnable ? this.selected[fieldName] : '';
+        this.form[fieldName].disabled = !shouldEnable;
+      }
     }
-    map.id = map.name = image.useMap = 'map';
-    for (var i=this.rects.length; i--;)
-      map.appendChild(this.rects[i].toHTML());
-    div.appendChild(image);
-    div.appendChild(map);
-    return div;
+
   };
 
-  Map.prototype.toggleControls = function (shouldEnable) {
-    for (var fieldName, i=fields.length; i--;) {
-      fieldName = fields[i];
-      this.form[fieldName].value = shouldEnable ? this.selected[fieldName] : '';
-      this.form[fieldName].disabled = !shouldEnable;
-    }
-  };
-
-  function Rect(canvas, x, y, width, height, f) {
+  var Rect = function (canvas, x, y, width, height, f) {
     this.canvas = canvas;
     this.x = x || 0;
     this.y = y || 0;
@@ -111,7 +114,7 @@
     this.url = '#';
     this.target = '_blank';
     this.alt = '';
-  }
+  };
 
   Rect.DEFAULT_SIZE = 20;
   Rect.ANCHOR_SIZE = 6;
@@ -119,127 +122,133 @@
   Rect.ANCHOR_FILL = 'darkred';
   Rect.Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
-  Rect.prototype.anchors = function () {
-    var x = this.x - Rect.ANCHOR_SIZE / 2;
-    var y = this.y - Rect.ANCHOR_SIZE / 2;
-    var w = this.width, h = this.height;
-    return [
-      { x: x,          y: y },
-      { x: x + w / 2,  y: y },
-      { x: x + w,      y: y },
-      { x: x,          y: y + h / 2 },
-      { x: x + w,      y: y + h / 2 },
-      { x: x,          y: y + h },
-      { x: x + w / 2,  y: y + h },
-      { x: x + w,      y: y + h }
-    ];
-  };
+  Rect.prototype = {
 
-  Rect.prototype.draw = function (context, selected) {
-    context.fillStyle = 'rgba(220,205,65,0.7)';
-    context.fillRect(this.x, this.y, this.width, this.height);
+    'anchors': function () {
+      var x = this.x - Rect.ANCHOR_SIZE / 2;
+      var y = this.y - Rect.ANCHOR_SIZE / 2;
+      var w = this.width, h = this.height;
+      return [
+        { x: x,          y: y },
+        { x: x + w / 2,  y: y },
+        { x: x + w,      y: y },
+        { x: x,          y: y + h / 2 },
+        { x: x + w,      y: y + h / 2 },
+        { x: x,          y: y + h },
+        { x: x + w / 2,  y: y + h },
+        { x: x + w,      y: y + h }
+      ];
+    },
 
-    if (selected === this) {
-      context.strokeStyle = Rect.ANCHOR_STROKE;
-      context.lineWidth = 1;
-      context.strokeRect(this.x, this.y, this.width, this.height);
-      context.fillStyle = Rect.ANCHOR_FILL;
+    'draw': function (context, selected) {
+      context.fillStyle = 'rgba(220,205,65,0.7)';
+      context.fillRect(this.x, this.y, this.width, this.height);
 
-      // top left, middle, right
-      var anchors = this.anchors();
-      for (var i=8; i--;) {
-        var anchor = anchors[i];
-        context.fillRect(anchor.x, anchor.y, Rect.ANCHOR_SIZE, Rect.ANCHOR_SIZE);
+      if (selected === this) {
+        context.strokeStyle = Rect.ANCHOR_STROKE;
+        context.lineWidth = 1;
+        context.strokeRect(this.x, this.y, this.width, this.height);
+        context.fillStyle = Rect.ANCHOR_FILL;
+
+        // top left, middle, right
+        var anchors = this.anchors();
+        for (var i=8; i--;) {
+          var anchor = anchors[i];
+          context.fillRect(anchor.x, anchor.y, Rect.ANCHOR_SIZE, Rect.ANCHOR_SIZE);
+        }
       }
-    }
-  };
+    },
 
-  Rect.prototype.transform = function (anchor) {
-    var x = this.x, y = this.y, w = this.width, h = this.height;
-    var attrs = {};
+    'transform': function (anchor) {
+      var x = this.x, y = this.y, w = this.width, h = this.height;
+      var attrs = {};
 
-    switch (anchor) {
-    case Rect.Anchors.NW:
-      attrs = { y: mouseY, x: mouseX };
-      break;
-    case Rect.Anchors.N:
-      attrs = { y: mouseY };
-      break;
-    case Rect.Anchors.NE:
-      attrs = { y: mouseY, width: mouseX - x };
-      break;
-    case Rect.Anchors.E:
-      attrs = { width: mouseX - x };
-      break;
-    case Rect.Anchors.SE:
-      attrs = { width: mouseX - x, height: mouseY - y };
-      break;
-    case Rect.Anchors.S:
-      attrs = { height: mouseY - y };
-      break;
-    case Rect.Anchors.SW:
-      attrs = { x: mouseX, height: mouseY - y };
-      break;
-    case Rect.Anchors.W:
-      attrs = { x: mouseX };
-      break;
-    }
-    this.attrs(attrs, true);
-  };
-
-  Rect.prototype.attrs = function (attrs, shouldStretch) {
-    if ('url' in attrs) this.url = attrs.url;
-    if ('target' in attrs) this.target = attrs.target;
-
-    if ('x' in attrs) {
-      if (shouldStretch) {
-        var oldX = this.x;
-        this.x = Math.max(0, Math.min(attrs.x, this.x + this.width));
-        this.width = this.width + oldX - this.x;
-        if (this.width + this.x > this.canvas.width)
-          this.width = this.canvas.width - this.x;
-      } else {
-        this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, this.canvas.width - this.width));
+      switch (anchor) {
+      case Rect.Anchors.NW:
+        attrs = { y: mouseY, x: mouseX };
+        break;
+      case Rect.Anchors.N:
+        attrs = { y: mouseY };
+        break;
+      case Rect.Anchors.NE:
+        attrs = { y: mouseY, width: mouseX - x };
+        break;
+      case Rect.Anchors.E:
+        attrs = { width: mouseX - x };
+        break;
+      case Rect.Anchors.SE:
+        attrs = { width: mouseX - x, height: mouseY - y };
+        break;
+      case Rect.Anchors.S:
+        attrs = { height: mouseY - y };
+        break;
+      case Rect.Anchors.SW:
+        attrs = { x: mouseX, height: mouseY - y };
+        break;
+      case Rect.Anchors.W:
+        attrs = { x: mouseX };
+        break;
       }
-    }
+      this.attrs(attrs, true);
+    },
 
-    if ('y' in attrs) {
-      if (shouldStretch) {
-        var oldY = this.y;
-        this.y = Math.max(0, Math.min(attrs.y, this.y + this.height));
-        this.height = this.height + oldY - this.y;
-        if (this.height + this.y > this.canvas.height)
-          this.height = this.canvas.height - this.y;
-      } else {
-        this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, this.canvas.height - this.height));
+    'attrs': function (attrs, shouldStretch) {
+      if ('url' in attrs) this.url = attrs.url;
+      if ('target' in attrs) this.target = attrs.target;
+
+      if ('x' in attrs) {
+        if (shouldStretch) {
+          var oldX = this.x;
+          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width));
+          this.width = this.width + oldX - this.x;
+          if (this.width + this.x > this.canvas.width)
+            this.width = this.canvas.width - this.x;
+        } else {
+          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, this.canvas.width - this.width));
+        }
       }
+
+      if ('y' in attrs) {
+        if (shouldStretch) {
+          var oldY = this.y;
+          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height));
+          this.height = this.height + oldY - this.y;
+          if (this.height + this.y > this.canvas.height)
+            this.height = this.canvas.height - this.y;
+        } else {
+          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, this.canvas.height - this.height));
+        }
+      }
+
+      if ('width' in attrs && !(this.x === 0 && 'x' in attrs))
+        this.width = Math.max(0, Math.min(attrs.width, this.canvas.width - this.x));
+
+      if ('height' in attrs && !(this.y === 0 && 'y' in attrs))
+        this.height = Math.max(0, Math.min(attrs.height, this.canvas.height - this.y));
+
+    },
+
+    'getCoords': function () {
+      return [this.x, this.y, this.x + this.width, this.y + this.height].join(',');
+    },
+
+    'isWithin': function (x, y) {
+      return this.x <= x && this.x + this.width >= x &&
+            this.y <= y && this.y + this.height >= y;
+    },
+
+    'toHTML': function () {
+      var area = document.createElement('area');
+      area.coords = this.getCoords();
+      area.href = this.url;
+      area.target = this.target;
+      area.alt = this.alt;
+      return area;
     }
 
-    if ('width' in attrs && !(this.x === 0 && 'x' in attrs))
-      this.width = Math.max(0, Math.min(attrs.width, this.canvas.width - this.x));
-
-    if ('height' in attrs && !(this.y === 0 && 'y' in attrs))
-      this.height = Math.max(0, Math.min(attrs.height, this.canvas.height - this.y));
-
   };
 
-  Rect.prototype.getCoords = function () {
-    return [this.x, this.y, this.x + this.width, this.y + this.height].join(',');
-  };
-
-  Rect.prototype.isWithin = function (x, y) {
-    return this.x <= x && this.x + this.width >= x &&
-           this.y <= y && this.y + this.height >= y;
-  };
-
-  Rect.prototype.toHTML = function () {
-    var area = document.createElement('area');
-    area.coords = this.getCoords();
-    area.href = this.url;
-    area.target = this.target;
-    area.alt = this.alt;
-    return area;
-  };
+  var updateGeneratedThrottle;
 
   function updateGenerated(map) {
     if (updateGeneratedThrottle) {
@@ -311,8 +320,6 @@
     // set our events. Up and down are for dragging,
     // double click is for making new rects
     canvas.onmousedown = function (e) {
-      if (e.target.id === 'remove') return map.remove();
-      if (e.target.id === 'add') return map.add(new Rect());
       if (fields.indexOf(e.target.id) >= 0) return;
 
       //we are over a selection rect
@@ -400,6 +407,17 @@
       map.base64 = this.checked;
       updateGenerated(map);
     };
+
+    document.getElementById('remove').onclick = function (e) {
+      e.preventDefault();
+      map.remove();
+    };
+
+    document.getElementById('add').onclick = function (e) {
+      e.preventDefault();
+      map.add(new Rect());
+    };
+
 
     reader.onload = function (e) {
       map.load(e.target.result);
