@@ -9,11 +9,10 @@ html, body
   height 100%
 
 body
-  background #ebebeb
+  background #fff
   color #333
   font-family Helvetica, Arial, sans-serif
   line-height 30px
-  margin 10px
 
   &.state-dragging, &.state-resizing
 
@@ -22,45 +21,46 @@ body
 
   &.state-started
 
-    canvas
-      display block
+    #edit, #preview
 
-    .empty
+      .content
+        display block
+
+    #empty
       display none
-
-h1
-  margin 0 0 30px
-  text-shadow 1px 0 0 #fff
 
 a
   color #0088cc
 
 canvas
-  display none
+  display block
   margin 0 auto
 
-.empty
-  padding 40px 0
-  text-align center
+#header
+  background #333
+  color #fff
 
-#tabs
-  padding-right 10px
+#edit, #preview
 
-  #tabs-nav
-
-    a
-      padding 5px 30px
-
-      &.selected
-        background #fff
-
-  .tab
+  .content
     display none
 
-  .tab.selected
-    display block
+#empty
+  border 2px dotted #ccc
+  height 200px
+  margin 200px auto 0
+  padding 85px 0
+  text-align center
+  width 70%
+
+#selection, #code
+  bottom 0
+  height 300px
+  position fixed
+  width 50%
 
 #selection
+  left 0
 
   ul
     clear both
@@ -82,6 +82,15 @@ canvas
     height 30px
     width 100%
 
+#code
+  left 50%
+
+  textarea
+    border 0
+    font-family Courier, monospace
+    font-size 14px
+    height 230px
+
 #preview
 
   .content
@@ -89,9 +98,6 @@ canvas
     img
       display block
       margin 0 auto
-
-#edit, #selection
-  padding-right 10px
 
 #generated
   width 100%
@@ -119,21 +125,44 @@ canvas
     padding-right 0
 
 section
+  background #fff
   float left
   overflow hidden
-  margin-bottom 20px
   width 50%
 
   h2
-    background #fff
-    float left
-    font-size 14px
-    padding 10px
-    clear both
-    overflow hidden
+    font-size 12px
+    padding 0 10px
+
+  .header
+    background #ccc
+    border 1px solid #fff
+    color #333
 
   .content
-    background #fff
     float left
     padding 10px
     width 100%
+
+.button
+  border-radius 5px
+  color #fff
+  display block
+  float left
+  font-weight 700
+  text-align center
+  text-decoration none
+  transition .3s background
+  width 50%
+
+#remove
+  background #E74C3C
+
+  &:hover
+    background #C0392B
+
+#add
+  background #3498DB
+
+  &:hover
+    background #2980B9

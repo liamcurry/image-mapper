@@ -110,16 +110,16 @@
     this.y = y || 0;
     this.width = width || Rect.DEFAULT_SIZE; // default width and height?
     this.height = height || Rect.DEFAULT_SIZE;
-    this.f = f || '#444444';
+    this.f = f || Rect.FILL; //'#444444';
     this.url = '#';
     this.target = '_blank';
     this.alt = '';
   };
 
+  Rect.FILL = '#ECF0F1';
   Rect.DEFAULT_SIZE = 20;
   Rect.ANCHOR_SIZE = 6;
-  Rect.ANCHOR_STROKE = '#cc0000';
-  Rect.ANCHOR_FILL = 'darkred';
+  Rect.ANCHOR_STROKE = Rect.ANCHOR_FILL = 'darkred'; //'#2C3E50';
   Rect.Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
   Rect.prototype = {
@@ -228,6 +228,23 @@
 
     },
 
+    'nudge': function (anchor) {
+      switch (anchor) {
+      case Rect.Anchors.N:
+        this.attrs({ y: this.y - 1 });
+        break;
+      case Rect.Anchors.W:
+        this.attrs({ x: this.x - 1 });
+        break;
+      case Rect.Anchors.E:
+        this.attrs({ x: this.x + 1 });
+        break;
+      case Rect.Anchors.S:
+        this.attrs({ y: this.y + 1 });
+        break;
+      }
+    },
+
     'getCoords': function () {
       return [this.x, this.y, this.x + this.width, this.y + this.height].join(',');
     },
@@ -314,6 +331,10 @@
       map.add(new Rect(map.canvas, x, y));
     };
 
+    elGenerated.onclick = function () {
+      this.select();
+    };
+
     //fixes a problem where double clicking causes text to get selected on the canvas
     canvas.onselectstart = function () { return false; };
 
@@ -325,12 +346,12 @@
       //we are over a selection rect
       if (currentAnchor !== -1) {
         status = Status.RESIZING;
-        this.classList.add('state-resizing');
+        document.body.classList.add('state-resizing');
       } else if (status !== Status.DRAGGING) {
         for (var i=map.rects.length; i--;) {
           if (map.rects[i].isWithin(mouseX, mouseY)) {
             status = Status.DRAGGING;
-            this.classList.add('state-dragging');
+            document.body.classList.add('state-dragging');
             if (map.selected !== map.rects[i])
               map.select(map.rects[i]);
             offsetX = mouseX - map.selected.x;
@@ -396,10 +417,30 @@
     };
 
     document.body.onkeydown = function (e) {
-      if ((e.keyCode === 8 || e.keyCode === 46) && map.selected &&
-          fields.indexOf(e.target.id) < 0) {
+      if (!map.selected || fields.indexOf(e.target.id) >= 0) return;
+
+      switch (e.keyCode) {
+      case 8:
+      case 46:
         e.preventDefault();
         map.remove();
+        break;
+      case 37:
+        map.selected.nudge(Rect.Anchors.W);
+        map.redraw = true;
+        break;
+      case 38:
+        map.selected.nudge(Rect.Anchors.N);
+        map.redraw = true;
+        break;
+      case 39:
+        map.selected.nudge(Rect.Anchors.E);
+        map.redraw = true;
+        break;
+      case 40:
+        map.selected.nudge(Rect.Anchors.S);
+        map.redraw = true;
+        break;
       }
     };
 

@@ -3,22 +3,24 @@
 <title>Image Mapper</title>
 <link rel=stylesheet href=css/master.css>
 
-<h1>Image Mapper</h1>
+<header id=header>
+  <h1>Image Mapper</h1>
+</header>
+
 
 <section id=edit>
-  <h2>Edit</h2>
+  <h2 class=header>Edit</h2>
   <div class=content>
     <canvas id=mapper></canvas>
-    <p class=empty>Drag and drop an image to begin.
   </div>
 </section>
 
 <section id=preview>
-  <h2>Preview</h2>
-  <div class=content>
-    <p class=empty>Drag and drop an image to begin.
-  </div>
+  <h2 class=header>Preview</h2>
+  <div class=content></div>
 </section>
+
+<p id=empty>Drag and drop an image to begin.
 
 <section id=selection>
   <h2 class=header>Selection</h2>
@@ -59,7 +61,7 @@
   <div class=content>
     <label for=base64>Base64</label>
     <input id=base64 type=checkbox checked>
-    <textarea id=generated readonly></textarea>
+    <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
   </div>
 </section>
 
