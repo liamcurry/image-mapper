@@ -9,9 +9,10 @@ html, body
   height 100%
 
 body
-  background #fff
-  color #333
+  background #ECF0F1
+  color #7F8C8D
   font-family Helvetica, Arial, sans-serif
+  font-weight 200
   line-height 30px
 
   &.state-dragging, &.state-resizing
@@ -20,42 +21,69 @@ body
       user-select none
 
   &.state-started
+    padding 60px 0 0
 
-    #edit, #preview
-
-      .content
-        display block
+    #header
+      height 40px
+      margin-top 10px
+      padding 0 10px
+      position fixed
+      top 0
+      width 100%
 
     #empty
       display none
 
+    section
+      display block
+
 a
   color #0088cc
+  text-decoration none
+
+section
+  border-color #ccc
+  border-style solid
+  border-width 1px 1px 0 0
+  display none
 
 canvas
   display block
   margin 0 auto
 
 #header
-  background #333
-  color #fff
+  height 40px
+  line-height 40px
+  margin 200px auto 10px
+  width 600px
 
-#edit, #preview
+  #brand
+    float left
+    font-weight 200
+    font-size 18px
+    text-transform uppercase
 
-  .content
-    display none
+  p
+    float right
+    font-size 14px
+    font-weight 200
 
 #empty
-  border 2px dotted #ccc
-  height 200px
-  margin 200px auto 0
-  padding 85px 0
+  background #7f8c8d
+  border-radius 3px
+  color #fff
+  font-size 18px
+  font-weight 200
+  line-height 100px
+  margin 0 auto
   text-align center
-  width 70%
+  transition .5s transform
+  transform-style preserve-3d
+  width 600px
 
 #selection, #code
   bottom 0
-  height 300px
+  height 240px
   position fixed
   width 50%
 
@@ -64,6 +92,7 @@ canvas
 
   ul
     clear both
+    margin-bottom 20px
     overflow hidden
 
   li
@@ -77,6 +106,8 @@ canvas
     line-height 30px
 
   input, select, option, textarea
+    border 1px solid #BDC3C7
+    border-radius 2px
     display block
     padding 5px
     height 30px
@@ -91,6 +122,10 @@ canvas
     font-size 14px
     height 230px
 
+#edit, #preview
+  height 100%
+  overflow auto
+
 #preview
 
   .content
@@ -101,11 +136,6 @@ canvas
 
 #generated
   width 100%
-
-.button
-  display block
-  float left
-  padding 10px
 
 #field-url
   padding-right 10px
@@ -124,45 +154,52 @@ canvas
   &:last-child
     padding-right 0
 
+.col
+  float left
+  height 100%
+  padding-bottom 240px
+  width 50%
+
+  &.collapsed
+    padding-bottom 30px
+
+    #selection, #code
+      background #666
+      color #fff
+      height 30px
+
+      .content
+        display none
+
 section
   background #fff
-  float left
   overflow hidden
-  width 50%
 
   h2
     font-size 12px
+    font-weight 200
     padding 0 10px
+    text-transform uppercase
 
   .header
-    background #ccc
-    border 1px solid #fff
-    color #333
+    padding 0 10px
+
+    h2
+      float left
+      padding 0
+
+    .actions
+      float right
+      font-size 10px
+
+      a
+        font-size 12px
+        padding 0 5px
+
+        &:last-child
+          padding-right 0
 
   .content
     float left
     padding 10px
     width 100%
-
-.button
-  border-radius 5px
-  color #fff
-  display block
-  float left
-  font-weight 700
-  text-align center
-  text-decoration none
-  transition .3s background
-  width 50%
-
-#remove
-  background #E74C3C
-
-  &:hover
-    background #C0392B
-
-#add
-  background #3498DB
-
-  &:hover
-    background #2980B9

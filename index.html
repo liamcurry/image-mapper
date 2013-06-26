@@ -1,68 +1,89 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>Image Mapper</title>
+<title>imgmap</title>
 <link rel=stylesheet href=css/master.css>
 
 <header id=header>
-  <h1>Image Mapper</h1>
+  <h1 id=brand>imgmap</h1>
+  <p>A simple interactive tool for creating image maps.
 </header>
 
+<p id=empty>Drag an image to this page to begin.
 
-<section id=edit>
-  <h2 class=header>Edit</h2>
-  <div class=content>
-    <canvas id=mapper></canvas>
-  </div>
-</section>
+<div class=col>
 
-<section id=preview>
-  <h2 class=header>Preview</h2>
-  <div class=content></div>
-</section>
+  <section id=edit>
+    <header class=header>
+      <h2>Edit</h2>
+      <nav class=actions>
+        <a id=remove href=#>Remove selected area</a> |
+        <a id=add href=#>Add an area</a>
+      </nav>
+    </header>
+    <div class=content>
+      <canvas id=mapper></canvas>
+    </div>
+  </section>
 
-<p id=empty>Drag and drop an image to begin.
+  <section id=selection>
+    <header class=header>
+      <h2>Selection</h2>
+      <nav class=actions>
+        <a href=# class=toggle>Collapse</a>
+      </nav>
+    </header>
+    <form class=content id=selected>
+      <ul>
+        <li id=field-url>
+          <label for=url>URL</label>
+          <input id=url disabled>
+        <li id=field-target>
+          <label for=target>Target</label>
+          <select id=target disabled>
+            <option selected>_blank
+            <option>_self
+          </select>
+        <li id=field-alt>
+          <label for=alt>Alt/Title text</label>
+          <input id=alt disabled>
+        <li id=field-x>
+          <label for=x>X</label>
+          <input id=x type=number min=0 disabled>
+        <li id=field-y>
+          <label for=y>Y</label>
+          <input id=y type=number min=0 disabled>
+        <li id=field-height>
+          <label for=height>Height</label>
+          <input id=height type=number min=0 disabled>
+        <li id=field-width>
+          <label for=width>Width</label>
+          <input id=width type=number min=0 disabled>
+      </ul>
+    </form>
+  </section>
 
-<section id=selection>
-  <h2 class=header>Selection</h2>
-  <form class=content id=selected>
-    <ul>
-      <li id=field-url>
-        <label for=url>URL</label>
-        <input id=url disabled>
-      <li id=field-target>
-        <label for=target>Target</label>
-        <select id=target disabled>
-          <option selected>_blank
-          <option>_self
-        </select>
-      <li id=field-alt>
-        <label for=alt>Alt text</label>
-        <input id=alt disabled>
-      <li id=field-x>
-        <label for=x>X</label>
-        <input id=x type=number min=0 disabled>
-      <li id=field-y>
-        <label for=y>Y</label>
-        <input id=y type=number min=0 disabled>
-      <li id=field-height>
-        <label for=height>Height</label>
-        <input id=height type=number min=0 disabled>
-      <li id=field-width>
-        <label for=width>Width</label>
-        <input id=width type=number min=0 disabled>
-    </ul>
-    <a class=button id=remove href=#>Remove selected</a>
-    <a class=button id=add href=#>Add another</a>
-  </form>
-</section>
+</div>
 
-<section class=section id=code>
-  <h2 class=header>Code</h2>
-  <div class=content>
-    <label for=base64>Base64</label>
-    <input id=base64 type=checkbox checked>
-    <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
-  </div>
-</section>
+<div class=col>
+
+  <section id=preview>
+    <h2 class=header>Preview</h2>
+    <div class=content></div>
+  </section>
+
+  <section class=section id=code>
+    <header class=header>
+      <h2>Code</h2>
+      <nav class=actions>
+        <label for=base64>Base64</label>
+        <input id=base64 type=checkbox checked>
+      </nav>
+    </header>
+    <div class=content>
+      <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
+    </div>
+  </section>
+
+</div>
 
 <script src=js/main.js></script>

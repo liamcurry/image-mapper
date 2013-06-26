@@ -1,36 +1,43 @@
 *{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:#fff;color:#333;font-family:Helvetica,Arial,sans-serif;line-height:30px;}
+body{background:#ecf0f1;color:#7f8c8d;font-family:Helvetica,Arial,sans-serif;font-weight:200;line-height:30px;}
 body.state-dragging *,body.state-resizing *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
-body.state-started #edit .content,body.state-started #preview .content{display:block}
+body.state-started{padding:60px 0 0;}
+body.state-started #header{height:40px;margin-top:10px;padding:0 10px;position:fixed;top:0;width:100%}
 body.state-started #empty{display:none}
-a{color:#08c}
+body.state-started section{display:block}
+a{color:#08c;text-decoration:none}
+section{border-color:#ccc;border-style:solid;border-width:1px 1px 0 0;display:none}
 canvas{display:block;margin:0 auto}
-#header{background:#333;color:#fff}
-#edit .content,#preview .content{display:none}
-#empty{border:2px dotted #ccc;height:200px;margin:200px auto 0;padding:85px 0;text-align:center;width:70%}
-#selection,#code{bottom:0;height:300px;position:fixed;width:50%}
+#header{height:40px;line-height:40px;margin:200px auto 10px;width:600px;}
+#header #brand{float:left;font-weight:200;font-size:18px;text-transform:uppercase}
+#header p{float:right;font-size:14px;font-weight:200}
+#empty{background:#7f8c8d;-webkit-border-radius:3px;border-radius:3px;color:#fff;font-size:18px;font-weight:200;line-height:100px;margin:0 auto;text-align:center;-webkit-transition:.5s -webkit-transform;-moz-transition:.5s -moz-transform;-o-transition:.5s -o-transform;-ms-transition:.5s -ms-transform;transition:.5s transform;-webkit-transform-style:preserve-3d;-moz-transform-style:preserve-3d;-o-transform-style:preserve-3d;-ms-transform-style:preserve-3d;transform-style:preserve-3d;width:600px}
+#selection,#code{bottom:0;height:240px;position:fixed;width:50%}
 #selection{left:0;}
-#selection ul{clear:both;overflow:hidden}
+#selection ul{clear:both;margin-bottom:20px;overflow:hidden}
 #selection li{float:left;list-style:none}
 #selection label{display:block;font-size:14px;font-weight:700;line-height:30px}
-#selection input,#selection select,#selection option,#selection textarea{display:block;padding:5px;height:30px;width:100%}
+#selection input,#selection select,#selection option,#selection textarea{border:1px solid #bdc3c7;-webkit-border-radius:2px;border-radius:2px;display:block;padding:5px;height:30px;width:100%}
 #code{left:50%;}
 #code textarea{border:0;font-family:Courier,monospace;font-size:14px;height:230px}
+#edit,#preview{height:100%;overflow:auto}
 #preview .content img{display:block;margin:0 auto}
 #generated{width:100%}
-.button{display:block;float:left;padding:10px}
 #field-url{padding-right:10px;width:75%}
 #field-target{width:25%}
 #field-alt{width:100%}
 #field-x,#field-y,#field-width,#field-height{padding-right:10px;width:25%;}
 #field-x:last-child,#field-y:last-child,#field-width:last-child,#field-height:last-child{padding-right:0}
-section{background:#fff;float:left;overflow:hidden;width:50%;}
-section h2{font-size:12px;padding:0 10px}
-section .header{background:#ccc;border:1px solid #fff;color:#333}
+.col{float:left;height:100%;padding-bottom:240px;width:50%;}
+.col.collapsed{padding-bottom:30px;}
+.col.collapsed #selection,.col.collapsed #code{background:#666;color:#fff;height:30px;}
+.col.collapsed #selection .content,.col.collapsed #code .content{display:none}
+section{background:#fff;overflow:hidden;}
+section h2{font-size:12px;font-weight:200;padding:0 10px;text-transform:uppercase}
+section .header{padding:0 10px;}
+section .header h2{float:left;padding:0}
+section .header .actions{float:right;font-size:10px;}
+section .header .actions a{font-size:12px;padding:0 5px;}
+section .header .actions a:last-child{padding-right:0}
 section .content{float:left;padding:10px;width:100%}
-.button{-webkit-border-radius:5px;border-radius:5px;color:#fff;display:block;float:left;font-weight:700;text-align:center;text-decoration:none;-webkit-transition:.3s background;-moz-transition:.3s background;-o-transition:.3s background;-ms-transition:.3s background;transition:.3s background;width:50%}
-#remove{background:#e74c3c;}
-#remove:hover{background:#c0392b}
-#add{background:#3498db;}
-#add:hover{background:#2980b9}

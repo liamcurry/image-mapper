@@ -309,7 +309,7 @@
       do {
         offsetX += el.offsetLeft;
         offsetY += el.offsetTop;
-      } while (el = el.offsetParent);
+      } while (el = el.offsetNode);
 
       mouseX = Math.max(0, e.pageX - offsetX);
       mouseY = Math.max(0, e.pageY - offsetY);
@@ -409,6 +409,12 @@
       this.className = 'state-dragover';
     };
 
+    /*
+    document.body.ondragleave = function () {
+      this.className = '';
+    };
+    */
+
     document.body.ondragend = function (e) { e.preventDefault(); };
 
     document.body.ondrop = function (e) {
@@ -458,7 +464,6 @@
       e.preventDefault();
       map.add(new Rect());
     };
-
 
     reader.onload = function (e) {
       map.load(e.target.result);
