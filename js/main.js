@@ -432,18 +432,22 @@
         map.remove();
         break;
       case 37:
+        e.preventDefault();
         map.selected.nudge(Rect.Anchors.W);
         map.redraw = true;
         break;
       case 38:
+        e.preventDefault();
         map.selected.nudge(Rect.Anchors.N);
         map.redraw = true;
         break;
       case 39:
+        e.preventDefault();
         map.selected.nudge(Rect.Anchors.E);
         map.redraw = true;
         break;
       case 40:
+        e.preventDefault();
         map.selected.nudge(Rect.Anchors.S);
         map.redraw = true;
         break;

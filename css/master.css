@@ -20,7 +20,7 @@ canvas{display:block;margin:0 auto}
 #selection label{display:block;font-size:14px;font-weight:700;line-height:30px}
 #selection input,#selection select,#selection option,#selection textarea{border:1px solid #bdc3c7;-webkit-border-radius:2px;border-radius:2px;display:block;padding:5px;height:30px;width:100%}
 #code{left:50%;}
-#code textarea{border:0;font-family:Courier,monospace;font-size:14px;height:230px}
+#code textarea{border:0;font-family:Courier,monospace;font-size:14px;height:190px}
 #edit,#preview{height:100%;overflow:auto}
 #preview .content img{display:block;margin:0 auto}
 #generated{width:100%}
