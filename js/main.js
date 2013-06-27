@@ -5,10 +5,11 @@
     'nw-resize', 'n-resize', 'ne-resize', 'w-resize',
     'e-resize', 'sw-resize', 's-resize', 'se-resize'
   ];
-  var elGenerated = document.getElementById('generated');
-  var elControls = document.getElementById('controls');
+  var $generated = $('#generated');
+  var $controls = $('#controls');
   var fields = ['x', 'y', 'width', 'height', 'url', 'target', 'alt'];
   var mouseX, mouseY;
+  var Anchor = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
   var Map = function (canvas, preview, form) {
     var _this = this;
@@ -16,13 +17,14 @@
     this.preview = preview;
     this.form = form;
     this.base64 = true;
-    this.context = canvas.getContext('2d');
+    this.context = canvas[0].getContext('2d');
     this.image = new Image();
+    this.image.useMap = '#map';
     this.image.onload = function () {
-      canvas.width = this.width;
-      canvas.height = this.height;
-      canvas.style.background = 'url(' + this.src + ')';
-      preview.innerHTML = _this.toHTML(true).innerHTML;
+      canvas
+        .attr({ width: this.width, height: this.height })
+        .css('background', 'url(' + this.src + ')');
+      preview.html($(this).clone()).append(_this.toHTML());
       updateGenerated(_this);
     };
     this.reset();
@@ -66,7 +68,7 @@
     },
 
     'clear': function () {
-      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.clearRect(0, 0, this.canvas.width(), this.canvas.height());
     },
 
     'draw': function () {
@@ -77,21 +79,15 @@
       this.redraw = false;
     },
 
-    'toHTML': function (useBase64) {
-      var div = document.createElement('div');
-      var map = document.createElement('map');
-      var image = this.image;
-      if (!useBase64) {
-        image = new Image();
-        image.width = this.image.width;
-        image.height = this.image.height;
-      }
-      map.id = map.name = image.useMap = 'map';
+    'toHTML': function () {
+      var $map = $('<map>').attr({'id': 'map', 'name': 'map'});
       for (var i=this.rects.length; i--;)
-        map.appendChild(this.rects[i].toHTML());
-      div.appendChild(image);
-      div.appendChild(map);
-      return div;
+        $map.append(this.rects[i].toHTML());
+      return $map;
+    },
+
+    'toCode': function (useBase64) {
+      return $('<div>').html(this.image).append(this.toHTML()).html();
     },
 
     'toggleControls': function (shouldEnable) {
@@ -120,7 +116,6 @@
   Rect.DEFAULT_SIZE = 20;
   Rect.ANCHOR_SIZE = 6;
   Rect.ANCHOR_STROKE = Rect.ANCHOR_FILL = 'darkred'; //'#2C3E50';
-  Rect.Anchors = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
   Rect.prototype = {
 
@@ -164,35 +159,22 @@
       var attrs = {};
 
       switch (anchor) {
-      case Rect.Anchors.NW:
-        attrs = { y: mouseY, x: mouseX };
-        break;
-      case Rect.Anchors.N:
-        attrs = { y: mouseY };
-        break;
-      case Rect.Anchors.NE:
-        attrs = { y: mouseY, width: mouseX - x };
-        break;
-      case Rect.Anchors.E:
-        attrs = { width: mouseX - x };
-        break;
-      case Rect.Anchors.SE:
-        attrs = { width: mouseX - x, height: mouseY - y };
-        break;
-      case Rect.Anchors.S:
-        attrs = { height: mouseY - y };
-        break;
-      case Rect.Anchors.SW:
-        attrs = { x: mouseX, height: mouseY - y };
-        break;
-      case Rect.Anchors.W:
-        attrs = { x: mouseX };
-        break;
+        case Anchor.NW: attrs = { y: mouseY, x: mouseX }; break;
+        case Anchor.NE: attrs = { y: mouseY, width: mouseX - x }; break;
+        case Anchor.SE: attrs = { width: mouseX - x, height: mouseY - y }; break;
+        case Anchor.SW: attrs = { x: mouseX, height: mouseY - y }; break;
+        case Anchor.N: attrs = { y: mouseY }; break;
+        case Anchor.E: attrs = { width: mouseX - x }; break;
+        case Anchor.S: attrs = { height: mouseY - y }; break;
+        case Anchor.W: attrs = { x: mouseX }; break;
       }
       this.attrs(attrs, true);
     },
 
     'attrs': function (attrs, shouldStretch) {
+      var canvasHeight = this.canvas.height();
+      var canvasWidth = this.canvas.width();
+
       if ('url' in attrs) this.url = attrs.url;
       if ('target' in attrs) this.target = attrs.target;
 
@@ -201,10 +183,10 @@
           var oldX = this.x;
           this.x = Math.max(0, Math.min(attrs.x, this.x + this.width));
           this.width = this.width + oldX - this.x;
-          if (this.width + this.x > this.canvas.width)
-            this.width = this.canvas.width - this.x;
+          if (this.width + this.x > canvasWidth)
+            this.width = canvasWidth - this.x;
         } else {
-          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, this.canvas.width - this.width));
+          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, canvasWidth - this.width));
         }
       }
 
@@ -213,61 +195,51 @@
           var oldY = this.y;
           this.y = Math.max(0, Math.min(attrs.y, this.y + this.height));
           this.height = this.height + oldY - this.y;
-          if (this.height + this.y > this.canvas.height)
-            this.height = this.canvas.height - this.y;
+          if (this.height + this.y > canvasHeight)
+            this.height = canvasHeight - this.y;
         } else {
-          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, this.canvas.height - this.height));
+          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, canvasHeight - this.height));
         }
       }
 
       if ('width' in attrs && !(this.x === 0 && 'x' in attrs))
-        this.width = Math.max(0, Math.min(attrs.width, this.canvas.width - this.x));
+        this.width = Math.max(0, Math.min(attrs.width, canvasWidth - this.x));
 
       if ('height' in attrs && !(this.y === 0 && 'y' in attrs))
-        this.height = Math.max(0, Math.min(attrs.height, this.canvas.height - this.y));
+        this.height = Math.max(0, Math.min(attrs.height, canvasHeight - this.y));
 
     },
 
     'nudge': function (anchor) {
       switch (anchor) {
-      case Rect.Anchors.N:
-        this.attrs({ y: this.y - 1 });
-        break;
-      case Rect.Anchors.W:
-        this.attrs({ x: this.x - 1 });
-        break;
-      case Rect.Anchors.E:
-        this.attrs({ x: this.x + 1 });
-        break;
-      case Rect.Anchors.S:
-        this.attrs({ y: this.y + 1 });
-        break;
+        case Anchor.N: this.attrs({ y: this.y - 1 }); break;
+        case Anchor.S: this.attrs({ y: this.y + 1 }); break;
+        case Anchor.W: this.attrs({ x: this.x - 1 }); break;
+        case Anchor.E: this.attrs({ x: this.x + 1 }); break;
       }
-    },
-
-    'getCoords': function () {
-      return [this.x, this.y, this.x + this.width, this.y + this.height].join(',');
     },
 
     'isWithin': function (x, y) {
       return this.x <= x && this.x + this.width >= x &&
-            this.y <= y && this.y + this.height >= y;
+             this.y <= y && this.y + this.height >= y;
     },
 
     'toHTML': function () {
-      var area = document.createElement('area');
-      area.coords = this.getCoords();
-      area.href = this.url;
-      area.target = this.target;
-      area.alt = this.alt;
-      return area;
+      return $('<area>').attr({
+        coords: [
+          this.x, this.y, this.x + this.width, this.y + this.height
+        ].join(','),
+        href: this.url,
+        target: this.target,
+        alt: this.alt
+      });
     }
 
   };
 
   var updateGeneratedThrottle;
 
-  function updateGenerated(map) {
+  function updateGenerated(map, updateInputs) {
     if (updateGeneratedThrottle) {
       return;
     } else {
@@ -276,11 +248,10 @@
         updateGeneratedThrottle = false;
       }, 1000);
     }
-    var div = map.toHTML(map.base64);
-    elGenerated.innerHTML = div.innerHTML;
-    map.preview.getElementsByTagName('map')[0].innerHTML =
-      div.getElementsByTagName('map')[0].innerHTML;
-    if (map.selected) {
+    var $div = map.toHTML(map.base64);
+    $generated.val(map.toCode());
+    map.preview.find('map').replaceWith(map.toHTML());
+    if (map.selected && updateInputs !== false) {
       for (var fieldName, i=fields.length; i--;) {
         fieldName = fields[i];
         if (map.form[fieldName].value != map.selected[fieldName])
@@ -289,205 +260,164 @@
     }
   }
 
-  window.onload = function () {
-    var canvas = document.getElementById('mapper');
-    var preview = document.getElementById('preview')
-                          .getElementsByClassName('content')[0];
+  $(function () {
+    var canvas = $('#mapper');
+    var preview = $('#preview').find('.content');
     var form = document.getElementById('selected');
     var map = window.map = new Map(canvas, preview, form);
-    var reader = new FileReader();
     var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
     var status = Status.IDLE;
-    var stylePaddingLeft, stylePaddingTop, styleBorderLeft, styleBorderTop;
-    var offsetX, offsetY;
-
-    function getMouse(e, canvas) {
-      var el = canvas;
-      var offsetX = stylePaddingLeft + styleBorderLeft;
-      var offsetY = stylePaddingTop + styleBorderTop;
-
-      do {
-        offsetX += el.offsetLeft;
-        offsetY += el.offsetTop;
-      } while (el = el.offsetNode);
-
-      mouseX = Math.max(0, e.pageX - offsetX);
-      mouseY = Math.max(0, e.pageY - offsetY);
-    }
-
-    // fixes mouse co-ordinate problems when there's a border or padding
-    // see getMouse for more detail
-    if (document.defaultView && document.defaultView.getComputedStyle) {
-      var style = document.defaultView.getComputedStyle(canvas, null);
-      stylePaddingLeft = +style.paddingLeft || 0;
-      stylePaddingTop = +style.paddingTop || 0;
-      styleBorderLeft = +style.borderLeftWidth || 0;
-      styleBorderTop = +style.borderTopWidth || 0;
-    }
-
-    canvas.ondblclick = function (e) {
-      var x = mouseX - Rect.ANCHOR_SIZE / 2;
-      var y = mouseY - Rect.ANCHOR_SIZE / 2;
-      map.add(new Rect(map.canvas, x, y));
-    };
-
-    elGenerated.onclick = function () {
-      this.select();
-    };
-
-    //fixes a problem where double clicking causes text to get selected on the canvas
-    canvas.onselectstart = function () { return false; };
-
-    // set our events. Up and down are for dragging,
-    // double click is for making new rects
-    canvas.onmousedown = function (e) {
-      if (fields.indexOf(e.target.id) >= 0) return;
-
-      //we are over a selection rect
-      if (currentAnchor !== -1) {
-        status = Status.RESIZING;
-        document.body.classList.add('state-resizing');
-      } else if (status !== Status.DRAGGING) {
-        for (var i=map.rects.length; i--;) {
-          if (map.rects[i].isWithin(mouseX, mouseY)) {
-            status = Status.DRAGGING;
-            document.body.classList.add('state-dragging');
-            if (map.selected !== map.rects[i])
-              map.select(map.rects[i]);
-            offsetX = mouseX - map.selected.x;
-            offsetY = mouseY - map.selected.y;
-            return;
-          }
-        }
-        // havent returned means we have selected nothing
-        status = Status.IDLE;
-        map.deselect();
-      }
-    };
-
-    document.body.onmouseup = function () {
-      if (status !== Status.IDLE) {
-        updateGenerated(map);
-        status = Status.IDLE;
-        currentAnchor = -1;
-        this.classList.remove('state-dragging', 'state-resizing');
-      }
-    };
-
-    document.body.onmousemove = function (e) {
-      getMouse(e, map.canvas);
-
-      if (status === Status.DRAGGING) {
-        map.selected.attrs({ x: mouseX - offsetX, y: mouseY - offsetY });
-        map.redraw = true;
-      } else if (status === Status.RESIZING) {
-        map.selected.transform(currentAnchor);
-        map.redraw = true;
-      } else if (map.selected) {
-        // see if we're hovering over an anchor
-        var anchors = map.selected.anchors();
-        for (var i=8; i--;) {
-          var anchor = anchors[i];
-          // we dont need to use the ghost context because
-          // selection handles will always be rectangles
-          if (mouseX >= anchor.x && mouseX <= anchor.x + Rect.ANCHOR_SIZE &&
-              mouseY >= anchor.y && mouseY <= anchor.y + Rect.ANCHOR_SIZE) {
-            // we found one!
-            currentAnchor = i;
-            map.redraw = true;
-            this.style.cursor = cursors[i];
-            return;
-          }
-        }
-        currentAnchor = -1;
-        this.style.cursor = map.selected.isWithin(mouseX, mouseY) ? 'move' : 'auto';
-      }
-    };
-
-    document.body.ondragover = function (e) {
-      e.preventDefault();
-      this.className = 'state-dragover';
-    };
-
-    /*
-    document.body.ondragleave = function () {
-      this.className = '';
-    };
-    */
-
-    document.body.ondragend = function (e) { e.preventDefault(); };
-
-    document.body.ondrop = function (e) {
-      e.preventDefault();
-      reader.readAsDataURL(e.dataTransfer.files[0]);
-    };
-
-    document.body.onkeydown = function (e) {
-      if (!map.selected || fields.indexOf(e.target.id) >= 0) return;
-
-      switch (e.keyCode) {
-      case 8:
-      case 46:
-        e.preventDefault();
-        map.remove();
-        break;
-      case 37:
-        e.preventDefault();
-        map.selected.nudge(Rect.Anchors.W);
-        map.redraw = true;
-        break;
-      case 38:
-        e.preventDefault();
-        map.selected.nudge(Rect.Anchors.N);
-        map.redraw = true;
-        break;
-      case 39:
-        e.preventDefault();
-        map.selected.nudge(Rect.Anchors.E);
-        map.redraw = true;
-        break;
-      case 40:
-        e.preventDefault();
-        map.selected.nudge(Rect.Anchors.S);
-        map.redraw = true;
-        break;
-      }
-    };
-
-    document.getElementById('base64').onchange = function () {
-      map.base64 = this.checked;
-      updateGenerated(map);
-    };
-
-    document.getElementById('remove').onclick = function (e) {
-      e.preventDefault();
-      map.remove();
-    };
-
-    document.getElementById('add').onclick = function (e) {
-      e.preventDefault();
-      map.add(new Rect());
-    };
+    var reader = new FileReader();
 
     reader.onload = function (e) {
       map.load(e.target.result);
-      document.body.className = 'state-started';
+      $('body').addClass('state-started');
     };
 
-    function updateField() {
+    function getMouse(e, canvas) {
+      var offsets = canvas.offset();
+      mouseX = Math.floor(Math.max(0, e.pageX - offsets.left));
+      mouseY = Math.floor(Math.max(0, e.pageY - offsets.top));
+    }
+
+    $generated.onclick = function () {
+      $(this).select();
+    };
+
+    //fixes a problem where double clicking causes text to get selected on the canvas
+
+    $('#mapper')
+      .on('selectstart', function () { return false; })
+      .on('dblclick', function (e) {
+        map.add(new Rect(map.canvas, mouseX, mouseY));
+      })
+      .on('mousedown', function (e) {
+        if (currentAnchor !== -1) {
+          status = Status.RESIZING;
+          document.body.classList.add('state-resizing');
+        } else if (status !== Status.DRAGGING) {
+          for (var i=map.rects.length; i--;) {
+            if (map.rects[i].isWithin(e.offsetX, e.offsetY)) {
+              status = Status.DRAGGING;
+              document.body.classList.add('state-dragging');
+              if (map.selected !== map.rects[i])
+                map.select(map.rects[i]);
+              return;
+            }
+          }
+          // havent returned means we have selected nothing
+          status = Status.IDLE;
+          map.deselect();
+        }
+      });
+
+    $('body')
+      .on('mouseup', function () {
+        if (status !== Status.IDLE) {
+          updateGenerated(map);
+          status = Status.IDLE;
+          currentAnchor = -1;
+          $(this).removeClass('state-dragging state-resizing');
+        }
+      })
+      .on('mousemove', function (e) {
+        getMouse(e, map.canvas);
+
+        if (status === Status.DRAGGING) {
+          map.selected.attrs({ x: mouseX, y: mouseY });
+          map.redraw = true;
+        } else if (status === Status.RESIZING) {
+          map.selected.transform(currentAnchor);
+          map.redraw = true;
+        } else if (map.selected) {
+          // see if we're hovering over an anchor
+          var anchors = map.selected.anchors();
+          for (var i=8; i--;) {
+            var anchor = anchors[i];
+            // we dont need to use the ghost context because
+            // selection handles will always be rectangles
+            if (mouseX >= anchor.x && mouseX <= anchor.x + Rect.ANCHOR_SIZE &&
+                mouseY >= anchor.y && mouseY <= anchor.y + Rect.ANCHOR_SIZE) {
+              // we found one!
+              currentAnchor = i;
+              map.redraw = true;
+              this.style.cursor = cursors[i];
+              return;
+            }
+          }
+          currentAnchor = -1;
+          this.style.cursor = map.selected.isWithin(mouseX, mouseY) ? 'move' : 'auto';
+        }
+      })
+      .on('dragover', function (e) {
+        e.preventDefault();
+        this.className = 'state-dragover';
+      })
+      .on('dragend', function (e) { e.preventDefault(); })
+      .on('drop', function (e) {
+        e.preventDefault();
+        reader.readAsDataURL(e.originalEvent.dataTransfer.files[0]);
+      })
+      .on('keydown', function (e) {
+        if (!map.selected || fields.indexOf(e.target.id) >= 0) return;
+
+        switch (e.which) {
+        case 8:
+        case 46:
+          e.preventDefault();
+          map.remove();
+          break;
+        case 37:
+          e.preventDefault();
+          map.selected.nudge(Anchor.W);
+          map.redraw = true;
+          break;
+        case 38:
+          e.preventDefault();
+          map.selected.nudge(Anchor.N);
+          map.redraw = true;
+          break;
+        case 39:
+          e.preventDefault();
+          map.selected.nudge(Anchor.E);
+          map.redraw = true;
+          break;
+        case 40:
+          e.preventDefault();
+          map.selected.nudge(Anchor.S);
+          map.redraw = true;
+          break;
+        }
+      });
+
+    $('#base64').change(function () {
+      map.base64 = this.checked;
+      updateGenerated(map);
+    });
+
+    $('#remove').click(function (e) {
+      e.preventDefault();
+      map.remove();
+    });
+
+    $('#add').click(function (e) {
+      e.preventDefault();
+      map.add(new Rect());
+    });
+
+    $('.toggle').click(function (e) {
+      e.preventDefault();
+      $(this).closest('.col').toggleClass('collapsed');
+    });
+
+    $('#selected').find('input, select').on('change, keyup', function () {
       var attrs = {};
       if (!this.value || !map.selected) return;
       attrs[this.id] = this.value;
       map.selected.attrs(attrs);
       map.redraw = true;
-      updateGenerated(map);
-    }
-
-    for (var i=fields.length; i--;) {
-      var field = document.getElementById(fields[i]);
-      field.onkeyup = updateField;
-      field.onchange = updateField;
-    }
+      updateGenerated(map, false);
+    });
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
       window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||
@@ -499,6 +429,6 @@
     };
 
     window.requestAnimationFrame(redraw);
-  };
+  });
 
 }());
