@@ -4,85 +4,104 @@
 <link rel=stylesheet href=css/master.css>
 
 <header id=header>
-  <h1 id=brand>imgmap</h1>
+  <h1 id=brand><a href=# class=restart>imgmap</a></h1>
   <p>A simple interactive tool for creating image maps.
 </header>
 
 <div id=begin>
-  <p id=empty>Drag an image to this page to begin.
-  <p class=or>or
-  <p>Enter a URL
+  <h2>Begin</h2>
+  <section id=begin-drag>
+    <p>Drag an image to this page to begin.
+  </section>
+  <section id=begin-paste>
+    <p>Paste an image from your clipboard.
+  </section>
+  <section id=begin-url>
+    <h2>Enter a URL</h2>
     <form method=get id=start>
-      <input type=url id=start-url>
+      <input type=url id=start-url name=start_url>
       <button type=submit>Start</button>
     </form>
-</div>
-
-<div class=col>
-  <section id=edit>
-    <header class=header>
-      <h2>Edit</h2>
-      <nav class=actions>
-        <a id=remove href=#>Remove selected area</a> |
-        <a id=add href=#>Add an area</a>
-      </nav>
-    </header>
-    <div class=content>
-      <canvas id=mapper></canvas>
-    </div>
   </section>
-  <section id=selection>
-    <header class=header>
-      <h2>Selection</h2>
-      <nav class=actions>
-        <a href=#col1 class=toggle>Collapse</a>
-      </nav>
-    </header>
-    <form class=content id=selected>
-      <ul>
-        <li id=field-url>
-          <label for=url>URL</label>
-          <input id=url disabled>
-        <li id=field-target>
-          <label for=target>Target</label>
-          <select id=target disabled>
-            <option selected>_blank
-            <option>_self
-          </select>
-        <li id=field-alt>
-          <label for=alt>Alt/Title text</label>
-          <input id=alt disabled>
-        <li id=field-x>
-          <label for=x>X</label>
-          <input id=x type=number min=0 disabled>
-        <li id=field-y>
-          <label for=y>Y</label>
-          <input id=y type=number min=0 disabled>
-        <li id=field-height>
-          <label for=height>Height</label>
-          <input id=height type=number min=0 disabled>
-        <li id=field-width>
-          <label for=width>Width</label>
-          <input id=width type=number min=0 disabled>
-      </ul>
-    </form>
+  <section id=begin-browse>
+    <h2>Browse for a file</h2>
+    <input type=file id=start-file>
+  </section>
+  <section id=begin-example>
+    <a href=//placekitten.com/300/300>Try</a>
+    <a href=//placekitten.com/400/400>an</a>
+    <a href=//placekitten.com/500/500>example</a>
   </section>
 </div>
 
-<div class=col>
-  <section id=preview>
-    <h2 class=header>Preview</h2>
-    <div class=content></div>
-  </section>
-  <section class=section id=code>
-    <header class=header>
-      <h2>Code</h2>
-    </header>
-    <div class=content>
-      <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
-    </div>
-  </section>
+<div id=began>
+  <div class=col>
+    <section id=edit>
+      <header class=header>
+        <h2>Edit</h2>
+        <nav class=actions>
+          <a id=remove href=#>Remove selected area</a> |
+          <a id=add href=#>Add an area</a>
+        </nav>
+      </header>
+      <div class=content>
+        <canvas id=mapper></canvas>
+      </div>
+    </section>
+    <section id=selection>
+      <header class=header>
+        <h2>Selection</h2>
+        <nav class=actions>
+          <a href=#col1 class=toggle>Collapse</a>
+        </nav>
+      </header>
+      <form class=content id=selected>
+        <ul>
+          <li id=field-url>
+            <label for=url>URL</label>
+            <input id=url disabled>
+          <li id=field-target>
+            <label for=target>Target</label>
+            <select id=target disabled>
+              <option selected>_blank
+              <option>_self
+            </select>
+          <li id=field-alt>
+            <label for=alt>Alt/Title text</label>
+            <input id=alt disabled>
+          <li id=field-x>
+            <label for=x>X</label>
+            <input id=x type=number min=0 disabled>
+          <li id=field-y>
+            <label for=y>Y</label>
+            <input id=y type=number min=0 disabled>
+          <li id=field-height>
+            <label for=height>Height</label>
+            <input id=height type=number min=0 disabled>
+          <li id=field-width>
+            <label for=width>Width</label>
+            <input id=width type=number min=0 disabled>
+        </ul>
+      </form>
+    </section>
+  </div>
+
+  <div class=col>
+    <section id=preview>
+      <h2 class=header>Preview</h2>
+      <div class=content></div>
+    </section>
+    <section class=section id=code>
+      <header class=header>
+        <h2>Code</h2>
+      </header>
+      <div class=content>
+        <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
+      </div>
+    </section>
+  </div>
 </div>
 
 <script src=js/jquery-2.0.2.min.js></script>
+<script src=js/utils.js></script>
 <script src=js/main.js></script>

@@ -31,21 +31,15 @@ body
       top 0
       width 100%
 
-    #empty
+    #begin
       display none
 
-    section
+    #began
       display block
 
 a
   color #0088cc
   text-decoration none
-
-section
-  border-color #ccc
-  border-style solid
-  border-width 1px 1px 0 0
-  display none
 
 canvas
   display block
@@ -68,7 +62,7 @@ canvas
     font-size 14px
     font-weight 200
 
-#empty
+#begin-drag
   background #7f8c8d
   border-radius 3px
   color #fff
@@ -80,6 +74,46 @@ canvas
   transition .5s transform
   transform-style preserve-3d
   width 600px
+
+#began
+  display none
+  height 100%
+
+  section
+    background #fff
+    border-color #ccc
+    border-style solid
+    border-width 1px 1px 0 0
+    overflow hidden
+
+    h2
+      font-size 12px
+      font-weight 200
+      padding 0 10px
+      text-transform uppercase
+
+    .header
+      padding 0 10px
+
+      h2
+        float left
+        padding 0
+
+      .actions
+        float right
+        font-size 10px
+
+        a
+          font-size 12px
+          padding 0 5px
+
+          &:last-child
+            padding-right 0
+
+    .content
+      float left
+      padding 10px
+      width 100%
 
 #selection, #code
   bottom 0
@@ -171,35 +205,4 @@ canvas
       .content
         display none
 
-section
-  background #fff
-  overflow hidden
 
-  h2
-    font-size 12px
-    font-weight 200
-    padding 0 10px
-    text-transform uppercase
-
-  .header
-    padding 0 10px
-
-    h2
-      float left
-      padding 0
-
-    .actions
-      float right
-      font-size 10px
-
-      a
-        font-size 12px
-        padding 0 5px
-
-        &:last-child
-          padding-right 0
-
-  .content
-    float left
-    padding 10px
-    width 100%
