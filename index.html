@@ -8,7 +8,15 @@
   <p>A simple interactive tool for creating image maps.
 </header>
 
-<p id=empty>Drag an image to this page to begin.
+<div id=begin>
+  <p id=empty>Drag an image to this page to begin.
+  <p class=or>or
+  <p>Enter a URL
+    <form method=get id=start>
+      <input type=url id=start-url>
+      <button type=submit>Start</button>
+    </form>
+</div>
 
 <div class=col>
   <section id=edit>
@@ -69,10 +77,6 @@
   <section class=section id=code>
     <header class=header>
       <h2>Code</h2>
-      <nav class=actions>
-        <label for=base64>Base64</label>
-        <input id=base64 type=checkbox checked>
-      </nav>
     </header>
     <div class=content>
       <textarea id=generated readonly>Code will be generated here once you begin.</textarea>

@@ -1,3 +1,4 @@
+// Warning: this code is an ugly mess, I know. I'll clean it up later.
 (function () {
 
   var currentAnchor = -1;
@@ -38,9 +39,9 @@
       this.rects = [];
     },
 
-    'load': function (imageData) {
+    'load': function (src) {
       this.reset();
-      this.image.src = imageData;
+      this.image.src = src;
     },
 
     'remove': function (index) {
@@ -237,17 +238,17 @@
 
   };
 
-  var updateGeneratedThrottle;
+  function throttle(func, ms) {
+    var shouldRun = true;
+    return function () {
+      if (!shouldRun) return;
+      shouldRun = false;
+      setTimeout(function () { shouldRun = true; }, ms);
+      func.apply(this, arguments);
+    };
+  }
 
-  function updateGenerated(map, updateInputs) {
-    if (updateGeneratedThrottle) {
-      return;
-    } else {
-      updateGeneratedThrottle = true;
-      setTimeout(function () {
-        updateGeneratedThrottle = false;
-      }, 1000);
-    }
+  var updateGenerated = function (map, updateInputs) {
     var $div = map.toHTML(map.base64);
     $generated.val(map.toCode());
     map.preview.find('map').replaceWith(map.toHTML());
@@ -258,7 +259,7 @@
           map.form[fieldName].value = map.selected[fieldName];
       }
     }
-  }
+  };
 
   $(function () {
     var canvas = $('#mapper');
@@ -268,23 +269,22 @@
     var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
     var status = Status.IDLE;
     var reader = new FileReader();
+    var mouseOffsetX, mouseOffsetY;
 
     reader.onload = function (e) {
       map.load(e.target.result);
       $('body').addClass('state-started');
     };
 
-    function getMouse(e, canvas) {
-      var offsets = canvas.offset();
-      mouseX = Math.floor(Math.max(0, e.pageX - offsets.left));
-      mouseY = Math.floor(Math.max(0, e.pageY - offsets.top));
-    }
-
-    $generated.onclick = function () {
+    $generated.click(function () {
       $(this).select();
-    };
+    });
 
-    //fixes a problem where double clicking causes text to get selected on the canvas
+    $('#start').submit(function (e) {
+      e.preventDefault();
+      map.load($('#start-url').val());
+      $('body').addClass('state-started');
+    });
 
     $('#mapper')
       .on('selectstart', function () { return false; })
@@ -297,11 +297,17 @@
           document.body.classList.add('state-resizing');
         } else if (status !== Status.DRAGGING) {
           for (var i=map.rects.length; i--;) {
-            if (map.rects[i].isWithin(e.offsetX, e.offsetY)) {
+            var rect = map.rects[i];
+            var pos = $(e.target).position();
+            var offsetX = e.offsetX || e.pageX - pos.left;
+            var offsetY = e.offsetY || e.pageY - pos.top;
+            if (rect.isWithin(offsetX, offsetY)) {
               status = Status.DRAGGING;
               document.body.classList.add('state-dragging');
-              if (map.selected !== map.rects[i])
-                map.select(map.rects[i]);
+              mouseOffsetX = offsetX - rect.x;
+              mouseOffsetY = offsetY - rect.y;
+              if (map.selected !== rect)
+                map.select(rect);
               return;
             }
           }
@@ -321,10 +327,15 @@
         }
       })
       .on('mousemove', function (e) {
-        getMouse(e, map.canvas);
+        var offsets = canvas.offset();
+        mouseX = Math.floor(Math.max(0, e.pageX - offsets.left));
+        mouseY = Math.floor(Math.max(0, e.pageY - offsets.top));
 
         if (status === Status.DRAGGING) {
-          map.selected.attrs({ x: mouseX, y: mouseY });
+          map.selected.attrs({
+            x: mouseX - mouseOffsetX,
+            y: mouseY - mouseOffsetY
+          });
           map.redraw = true;
         } else if (status === Status.RESIZING) {
           map.selected.transform(currentAnchor);
@@ -410,8 +421,9 @@
       $(this).closest('.col').toggleClass('collapsed');
     });
 
-    $('#selected').find('input, select').on('change, keyup', function () {
+    $('#selected').find('input, select').on('change keyup', function () {
       var attrs = {};
+      console.log(this.value);
       if (!this.value || !map.selected) return;
       attrs[this.id] = this.value;
       map.selected.attrs(attrs);
