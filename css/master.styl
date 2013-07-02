@@ -1,4 +1,46 @@
 @import 'nib'
+@import 'fontello.css'
+
+color-bg = #ebebeb
+color-highlight1 = #08c
+color-highlight2 = #04c
+color1 = #E74C3C
+color2 = #E67E22
+color3 = #3498DB
+color4 = #9B59B6
+gradient-strength = 40%
+font-body = Helvetica, Arial, sans-serif
+font-head = font-body
+font-mono = monospace
+base-border-radius = 3px
+base-line-height = 20px
+base-gutter = base-line-height
+
+well()
+  border-radius base-border-radius
+  padding base-gutter
+
+button(bg=color3)
+  background bg
+  border-radius 15px
+  color #fff
+  display block
+  font-size 14px
+  font-weight 200
+  line-height 30px
+  padding 0 base-gutter
+  text-align center
+  text-transform uppercase
+
+input()
+  border-radius base-border-radius
+  border 0
+  height 30px
+  line-height 20px
+  padding 5px
+
+  &:disabled
+    opacity .7
 
 *
   box-sizing border-box
@@ -9,200 +51,234 @@ html, body
   height 100%
 
 body
-  background #ECF0F1
-  color #7F8C8D
-  font-family Helvetica, Arial, sans-serif
+  background #fff
+  font-family font-body
   font-weight 200
-  line-height 30px
-
-  &.state-dragging, &.state-resizing
-
-    *
-      user-select none
-
-  &.state-started
-    padding 60px 0 0
-
-    #header
-      height 40px
-      margin-top 10px
-      padding 0 10px
-      position fixed
-      top 0
-      width 100%
-
-    #begin
-      display none
-
-    #began
-      display block
+  line-height base-line-height
 
 a
-  color #0088cc
+  color #3498DB
   text-decoration none
 
-canvas
-  display block
-  margin 0 auto
+  &:hover
+    color #2980B9
+
+input, textarea, select, option
+  input()
 
 #header
-  height 40px
-  line-height 40px
-  margin 200px auto 10px
-  width 600px
+  margin 50px auto 0
+  width 960px
 
-  #brand
-    float left
-    font-weight 200
+  h1
     font-size 18px
+    font-weight 200
+    margin 0
+    line-height 50px
+    padding 0 base-gutter
     text-transform uppercase
 
-  p
-    float right
-    font-size 14px
-    font-weight 200
-
-#begin-drag
-  background #7f8c8d
-  border-radius 3px
-  color #fff
+#state-begin
+  clearfix()
   font-size 18px
-  font-weight 200
-  line-height 100px
+  height 400px
   margin 0 auto
   text-align center
-  transition .5s transform
-  transform-style preserve-3d
-  width 600px
+  width 960px
 
-#began
-  display none
-  height 100%
-
-  section
-    background #fff
-    border-color #ccc
-    border-style solid
-    border-width 1px 1px 0 0
-    overflow hidden
-
-    h2
-      font-size 12px
-      font-weight 200
-      padding 0 10px
-      text-transform uppercase
-
-    .header
-      padding 0 10px
-
-      h2
-        float left
-        padding 0
-
-      .actions
-        float right
-        font-size 10px
-
-        a
-          font-size 12px
-          padding 0 5px
-
-          &:last-child
-            padding-right 0
-
-    .content
-      float left
-      padding 10px
-      width 100%
-
-#selection, #code
-  bottom 0
-  height 240px
-  position fixed
+#begin-example
+  float left
+  padding 0 0 0 base-gutter
   width 50%
 
-#selection
-  left 0
+  img
+    border-radius base-border-radius
+    display block
+
+#begin-inputs
+  well()
+  float left
+  height 100%
+  padding 0
+  width 50%
+
+  div
+    border-color #fff
+    border-style solid
+    border-width 0 4px 4px 0
+    color #fff
+    height 50%
+    float left
+    padding 10px 20px
+    width 50%
+
+    i
+      font-size 72px
+      display block
+      height 130px
+      line-height 130px
+      text-align center
+
+  #begin-browse
+    background linear-gradient(top left, lighten(color1, gradient-strength), color1)
+    background color1
+    border-top-left-radius base-border-radius
+
+    a
+      color #fff
+
+    input
+      display none
+
+  #begin-enter
+    background linear-gradient(top left, lighten(color2, gradient-strength), color2)
+    background color2
+    border-top-right-radius base-border-radius
+    border-right 0
+
+    input
+      display block
+      height 30px
+      width 100%
+
+  #begin-drag
+    background linear-gradient(top left, lighten(color3, gradient-strength), color3)
+    background color3
+    border-bottom-left-radius base-border-radius
+    border-bottom 0
+
+  #begin-paste
+    background linear-gradient(top left, lighten(color4, gradient-strength), color4)
+    background color4
+    border-bottom-right-radius base-border-radius
+    border 0
+
+.state-started
+  background #ECF0F1
+
+  #state-begin
+    display none
+
+  #state-started
+    display block
+
+  #header
+    background #fff
+    left 0
+    margin 0
+    position absolute
+    top 0
+    width 100%
+
+#state-started
+  display none
+  height 100%
+  padding-top 50px
+
+.pane-stack
+  float left
+  height 100%
+
+  &:first-child
+    width 70%
+
+  &:last-child
+    background #7F8C8D
+    width 30%
+
+.pane
+
+  .pane-header
+    background #BDC3C7
+    overflow hidden
+    line-height 35px
+    padding-top 10px
+    text-transform uppercase
+
+    h2, a
+      color #ECF0F1
+      padding 0 base-gutter
+
+    h2, .pane-selected
+      background #7F8C8D
+      border-radius base-border-radius base-border-radius 0 0
+      float left
+
+    h2, &
+      font-size 14px
+      font-weight 200
+
+  .pane-content
+    padding base-gutter
+
+.pane-group
+
+  .pane-header
+    padding-left base-gutter
+
+    .pane-selected
+      background #ECF0F1
+      color #7F8C8D
+
+#pane-edit
+
+  canvas
+    clear both
+    display block
+    margin base-gutter auto 0
+
+  #area-add
+    button()
+    float right
+    margin-bottom base-gutter
+    padding-left 10px
+
+
+#pane-info
+  overflow hidden
 
   ul
-    clear both
-    margin-bottom 20px
     overflow hidden
 
   li
     float left
     list-style none
+    padding 5px 5px 0
 
   label
+    color #ECF0F1
     display block
-    font-size 14px
-    font-weight 700
-    line-height 30px
+    font-size 12px
+    font-weight 200
+    text-transform uppercase
 
-  input, select, option, textarea
-    border 1px solid #BDC3C7
-    border-radius 2px
-    display block
-    padding 5px
-    height 30px
+  input, select
     width 100%
 
-#code
-  left 50%
+  #field-url
+    width 70%
+
+  #field-target
+    width 30%
+
+  #field-alt
+    width 100%
+
+  #field-x, #field-y, #field-height, #field-width
+    width 25%
+
+  #area-remove
+    button(#34495E)
+    margin-bottom 10px
+
+#pane-code
 
   textarea
-    border 0
-    font-family Courier, monospace
+    background transparent
+    color #ECF0F1
+    display block
     font-size 14px
-    height 190px
-
-#edit, #preview
-  height 100%
-  overflow auto
-
-#preview
-
-  .content
-
-    img
-      display block
-      margin 0 auto
-
-#generated
-  width 100%
-
-#field-url
-  padding-right 10px
-  width 75%
-
-#field-target
-  width 25%
-
-#field-alt
-  width 100%
-
-#field-x, #field-y, #field-width, #field-height
-  padding-right 10px
-  width 25%
-
-  &:last-child
-    padding-right 0
-
-.col
-  float left
-  height 100%
-  padding-bottom 240px
-  width 50%
-
-  &.collapsed
-    padding-bottom 30px
-
-    #selection, #code
-      background #666
-      color #fff
-      height 30px
-
-      .content
-        display none
-
-
+    font-weight 200
+    height 500px
+    padding 0
+    width 100%

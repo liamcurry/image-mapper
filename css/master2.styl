@@ -1,0 +1,208 @@
+@import 'nib'
+
+*
+  box-sizing border-box
+  margin 0
+  padding 0
+
+html, body
+  height 100%
+
+body
+  background #ECF0F1
+  color #7F8C8D
+  font-family Helvetica, Arial, sans-serif
+  font-weight 200
+  line-height 30px
+
+  &.state-dragging, &.state-resizing
+
+    *
+      user-select none
+
+  &.state-started
+    padding 60px 0 0
+
+    #header
+      height 40px
+      margin-top 10px
+      padding 0 10px
+      position fixed
+      top 0
+      width 100%
+
+    #begin
+      display none
+
+    #began
+      display block
+
+a
+  color #0088cc
+  text-decoration none
+
+canvas
+  display block
+  margin 0 auto
+
+#header
+  height 40px
+  line-height 40px
+  margin 200px auto 10px
+  width 600px
+
+  #brand
+    float left
+    font-weight 200
+    font-size 18px
+    text-transform uppercase
+
+  p
+    float right
+    font-size 14px
+    font-weight 200
+
+#begin-drag
+  background #7f8c8d
+  border-radius 3px
+  color #fff
+  font-size 18px
+  font-weight 200
+  line-height 100px
+  margin 0 auto
+  text-align center
+  transition .5s transform
+  transform-style preserve-3d
+  width 600px
+
+#began
+  display none
+  height 100%
+
+  section
+    background #fff
+    border-color #ccc
+    border-style solid
+    border-width 1px 1px 0 0
+    overflow hidden
+
+    h2
+      font-size 12px
+      font-weight 200
+      padding 0 10px
+      text-transform uppercase
+
+    .header
+      padding 0 10px
+
+      h2
+        float left
+        padding 0
+
+      .actions
+        float right
+        font-size 10px
+
+        a
+          font-size 12px
+          padding 0 5px
+
+          &:last-child
+            padding-right 0
+
+    .content
+      float left
+      padding 10px
+      width 100%
+
+#selection, #code
+  bottom 0
+  height 240px
+  position fixed
+  width 50%
+
+#selection
+  left 0
+
+  ul
+    clear both
+    margin-bottom 20px
+    overflow hidden
+
+  li
+    float left
+    list-style none
+
+  label
+    display block
+    font-size 14px
+    font-weight 700
+    line-height 30px
+
+  input, select, option, textarea
+    border 1px solid #BDC3C7
+    border-radius 2px
+    display block
+    padding 5px
+    height 30px
+    width 100%
+
+#code
+  left 50%
+
+  textarea
+    border 0
+    font-family Courier, monospace
+    font-size 14px
+    height 190px
+
+#edit, #preview
+  height 100%
+  overflow auto
+
+#preview
+
+  .content
+
+    img
+      display block
+      margin 0 auto
+
+#generated
+  width 100%
+
+#field-url
+  padding-right 10px
+  width 75%
+
+#field-target
+  width 25%
+
+#field-alt
+  width 100%
+
+#field-x, #field-y, #field-width, #field-height
+  padding-right 10px
+  width 25%
+
+  &:last-child
+    padding-right 0
+
+.col
+  float left
+  height 100%
+  padding-bottom 240px
+  width 50%
+
+  &.collapsed
+    padding-bottom 30px
+
+    #selection, #code
+      background #666
+      color #fff
+      height 30px
+
+      .content
+        display none
+
+

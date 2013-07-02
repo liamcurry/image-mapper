@@ -1,61 +1,65 @@
 <!doctype html>
 <meta charset=utf-8>
-<title>imgmap</title>
+<title>Image Mapper</title>
 <link rel=stylesheet href=css/master.css>
 
 <header id=header>
-  <h1 id=brand><a href=# class=restart>imgmap</a></h1>
-  <p>A simple interactive tool for creating image maps.
+  <h1 id=header-brand><a href=# class=restart>Image Mapper</a></h1>
 </header>
 
-<div id=begin>
-  <h2>Begin</h2>
-  <section id=begin-drag>
-    <p>Drag an image to this page to begin.
-  </section>
-  <section id=begin-paste>
-    <p>Paste an image from your clipboard.
-  </section>
-  <section id=begin-url>
-    <h2>Enter a URL</h2>
-    <form method=get id=start>
-      <input type=url id=start-url name=start_url>
-      <button type=submit>Start</button>
-    </form>
-  </section>
-  <section id=begin-browse>
-    <h2>Browse for a file</h2>
-    <input type=file id=start-file>
-  </section>
-  <section id=begin-example>
-    <a href=//placekitten.com/300/300>Try</a>
-    <a href=//placekitten.com/400/400>an</a>
-    <a href=//placekitten.com/500/500>example</a>
-  </section>
+<div id=state-begin>
+  <div id=begin-inputs>
+    <div class=begin id=begin-browse>
+      <i class=icon-desktop></i>
+      <a href=#><strong>Browse</strong> your computer</a>
+      <input type=file id=start-file>
+    </div>
+    <div class=begin id=begin-enter>
+      <i class=icon-network></i>
+      <form method=get>
+        <input type=url name=url placeholder="Enter a url from the web">
+      </form>
+    </div>
+    <div class=begin id=begin-drag>
+      <i class=icon-inbox></i>
+      <p><strong>Drag and drop</strong> here
+    </div>
+    <div class=begin id=begin-paste>
+      <i class=icon-clipboard></i>
+      <p><strong>Paste</strong> from your clipboard
+    </div>
+  </div>
+  <div id=begin-example>
+    <img src=//placekitten.com/460/400>
+    <a href=?url=//placekitten.com/460/400>Try this example</a>
+  </div>
 </div>
 
-<div id=began>
-  <div class=col>
-    <section id=edit>
-      <header class=header>
-        <h2>Edit</h2>
-        <nav class=actions>
-          <a id=remove href=#>Remove selected area</a> |
-          <a id=add href=#>Add an area</a>
-        </nav>
+<div id=state-started>
+  <div class=pane-stack>
+    <div class="pane pane-group">
+      <header class=pane-header>
+        <a href=#pane-edit class=pane-selected>Edit</a>
+        <a href=#pane-preview>Preview</a>
       </header>
-      <div class=content>
-        <canvas id=mapper></canvas>
+      <div class="pane-content pane-selected" id=pane-edit>
+        <a id=area-add href=#>
+          <i class=icon-plus-circled></i> Add
+        </a>
+        <canvas id=map></canvas>
       </div>
-    </section>
-    <section id=selection>
-      <header class=header>
-        <h2>Selection</h2>
-        <nav class=actions>
-          <a href=#col1 class=toggle>Collapse</a>
-        </nav>
+      <div class=pane-content id=pane-preview></div>
+    </div>
+  </div>
+  <div class=pane-stack>
+    <div class=pane>
+      <header class=pane-header>
+        <h2>Info</h2>
       </header>
-      <form class=content id=selected>
+      <form class=pane-content id=pane-info>
+        <a id=area-remove href=#>
+          <i class=icon-cancel-circled></i> Remove
+        </a>
         <ul>
           <li id=field-url>
             <label for=url>URL</label>
@@ -67,7 +71,7 @@
               <option>_self
             </select>
           <li id=field-alt>
-            <label for=alt>Alt/Title text</label>
+            <label for=alt>Alt text</label>
             <input id=alt disabled>
           <li id=field-x>
             <label for=x>X</label>
@@ -83,25 +87,19 @@
             <input id=width type=number min=0 disabled>
         </ul>
       </form>
-    </section>
-  </div>
-
-  <div class=col>
-    <section id=preview>
-      <h2 class=header>Preview</h2>
-      <div class=content></div>
-    </section>
-    <section class=section id=code>
-      <header class=header>
+    </div>
+    <div class=pane>
+      <header class=pane-header>
         <h2>Code</h2>
       </header>
-      <div class=content>
-        <textarea id=generated readonly>Code will be generated here once you begin.</textarea>
+      <div class=pane-content id=pane-code>
+        <textarea readonly>
+          Code will be generated here once you begin.
+        </textarea>
       </div>
-    </section>
+    </div>
   </div>
 </div>
 
 <script src=js/jquery-2.0.2.min.js></script>
-<script src=js/utils.js></script>
 <script src=js/main.js></script>
