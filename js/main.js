@@ -298,14 +298,11 @@
         } else if (status !== Status.DRAGGING) {
           for (var i=map.rects.length; i--;) {
             var rect = map.rects[i];
-            var pos = $(e.target).position();
-            var offsetX = e.offsetX || e.pageX - pos.left;
-            var offsetY = e.offsetY || e.pageY - pos.top;
-            if (rect.isWithin(offsetX, offsetY)) {
+            if (rect.isWithin(mouseX, mouseY)) {
               status = Status.DRAGGING;
               document.body.classList.add('state-dragging');
-              mouseOffsetX = offsetX - rect.x;
-              mouseOffsetY = offsetY - rect.y;
+              mouseOffsetX = mouseX - rect.x;
+              mouseOffsetY = mouseY - rect.y;
               if (map.selected !== rect)
                 map.select(rect);
               return;
@@ -460,7 +457,6 @@
     }
 
     window.addEventListener('paste', function (e) {
-      console.log(e);
       reader.readAsDataURL(e.clipboardData.items[0].getAsFile());
     });
 
