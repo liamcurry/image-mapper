@@ -28,7 +28,6 @@ button(bg=color3, border=#2980B9)
   border-width 0 0 3px
   color #fff
   display block
-  font-size 14px
   font-weight 200
   line-height 30px
   padding 0 base-gutter
@@ -97,6 +96,7 @@ input, textarea, select, option
 
 #state-begin
   clearfix()
+  color #2C3E50
   font-size 24px
   height 400px
   margin 0 auto
@@ -104,21 +104,16 @@ input, textarea, select, option
   width 960px
 
 #begin-intro
-  color #2C3E50
   height 110px
   line-height 110px
   text-align center
 
 #begin-inputs
-  border 1px solid #2C3E50
   margin 0 auto
   overflow hidden
   padding 0
 
   li
-    border 1px solid #2C3E50
-    background #34495E
-    color #fff
     float left
     list-style none
     height 100px
@@ -134,7 +129,6 @@ input, textarea, select, option
       width 100px
 
     .begin-text
-      color #fff
       display block
       float left
       line-height 100px
@@ -159,19 +153,28 @@ input, textarea, select, option
   #begin-enter
 
     input
+      background transparent
+      border 2px solid #BDC3C7
       display block
       font-size 18px
       height 60px
       margin-top 20px
       width 350px
 
+      &:active, &:focus
+        background #fff
+
   #begin-example
-    border 1px solid #2C3E50
+    height auto
+    margin-top 40px
     text-align center
     width 100%
 
     .begin-text
+      button()
+      border-radius 30px
       float none
+      line-height 60px
 
 .state-started
   background #34495E
