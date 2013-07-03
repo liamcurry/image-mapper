@@ -8,14 +8,15 @@
   ];
   var $generated = $('#pane-code').find('textarea');
   var $controls = $('#pane-info');
+  var $body = $('body');
   var fields = ['x', 'y', 'width', 'height', 'url', 'target', 'alt'];
   var mouseX, mouseY;
   var Anchor = { NW: 0, N: 1, NE: 2, W: 3, E: 4, SW: 5, S: 6, SE: 7 };
 
-  function Map($canvas, preview, form) {
+  function Map($canvas, $preview, form) {
     var _this = this;
     this.$canvas = $canvas;
-    this.preview = preview;
+    this.$preview = $preview;
     this.form = form;
     this.context = $canvas[0].getContext('2d');
     this.image = new Image();
@@ -23,19 +24,17 @@
     this.image.onload = function () {
       $canvas.attr({ width: this.width, height: this.height })
         .css('background', 'url(' + this.src + ')');
-      preview.html($(this).clone()).prepend(_this.render());
+      $preview.html($(this).clone()).prepend(_this.render());
       updateGenerated(_this);
     };
-    console.log(this);
     this.reset();
   }
 
   Map.prototype = {
 
     reset: function () {
-      this.redraw = true;
-      this.selected = null;
       this.rects = [];
+      this.deselect();
     },
 
     load: function (src) {
@@ -45,7 +44,10 @@
 
     remove: function (index) {
       this.rects.splice(index || this.rects.indexOf(this.selected), 1);
-      this.deselect();
+      if (this.rects.length)
+        this.select(this.rects[0]);
+      else
+        this.deselect();
       this.redraw = true;
     },
 
@@ -56,12 +58,14 @@
     },
 
     select: function (area) {
+      $body.addClass('selected');
       this.selected = area;
       this.toggleControls(true);
       this.redraw = true;
     },
 
     deselect: function () {
+      $body.removeClass('selected');
       this.selected = null;
       this.toggleControls(false);
       this.redraw = true;
@@ -103,22 +107,23 @@
 
   };
 
-  function Rect($canvas, x, y, width, height, f) {
+  function Rect($canvas, x, y, width, height) {
     this.$canvas = $canvas;
     this.x = x || 0;
     this.y = y || 0;
     this.width = width || Rect.DEFAULT_SIZE; // default width and height?
     this.height = height || Rect.DEFAULT_SIZE;
-    this.f = f || Rect.FILL; //'#444444';
     this.url = '';
     this.target = '_blank';
     this.alt = '';
   }
 
-  Rect.FILL = '#ECF0F1';
+  Rect.FILL = 'rgba(243, 156, 38, 0.7)';
+  Rect.SELECTED_STROKE = '#D35400';
+  Rect.SELECTED_FILL = 'rgba(241, 196, 44, 0.7)'; //rgba(220,205,65,0.7)';
   Rect.DEFAULT_SIZE = 20;
   Rect.ANCHOR_SIZE = 6;
-  Rect.ANCHOR_STROKE = Rect.ANCHOR_FILL = 'darkred'; //'#2C3E50';
+  Rect.ANCHOR_STROKE = Rect.ANCHOR_FILL = '#C0392B';
 
   Rect.prototype = {
 
@@ -139,20 +144,24 @@
     },
 
     draw: function (context, selected) {
-      context.fillStyle = 'rgba(220,205,65,0.7)';
+      var isSelected = selected === this;
+
+      context.fillStyle = isSelected ? Rect.SELECTED_FILL : Rect.FILL;
       context.fillRect(this.x, this.y, this.width, this.height);
 
-      if (selected === this) {
-        context.strokeStyle = Rect.ANCHOR_STROKE;
-        context.lineWidth = 1;
+      if (isSelected) {
+        context.lineWidth = 2;
+        context.strokeStyle = Rect.SELECTED_STROKE;
         context.strokeRect(this.x, this.y, this.width, this.height);
-        //context.fillStyle = Rect.ANCHOR_FILL;
 
         // top left, middle, right
+        context.strokeStyle = Rect.ANCHOR_STROKE;
+        context.fillStyle = Rect.ANCHOR_FILL;
         var anchors = this.anchors();
         for (var i=8; i--;) {
           var anchor = anchors[i];
           context.strokeRect(anchor.x, anchor.y, Rect.ANCHOR_SIZE, Rect.ANCHOR_SIZE);
+          context.fillRect(anchor.x, anchor.y, Rect.ANCHOR_SIZE, Rect.ANCHOR_SIZE);
         }
       }
     },
@@ -174,6 +183,10 @@
       this.set(attrs, true);
     },
 
+    normalize: function () {
+      return Math.round(Math.max(0, Math.min.apply(Math, arguments)));
+    },
+
     set: function (attrs, shouldStretch) {
       var canvasHeight = this.$canvas.height();
       var canvasWidth = this.$canvas.width();
@@ -185,32 +198,32 @@
       if ('x' in attrs) {
         if (shouldStretch) {
           var oldX = this.x;
-          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width));
+          this.x = this.normalize(attrs.x, this.x + this.width);
           this.width = this.width + oldX - this.x;
           if (this.width + this.x > canvasWidth)
             this.width = canvasWidth - this.x;
         } else {
-          this.x = Math.max(0, Math.min(attrs.x, this.x + this.width, canvasWidth - this.width));
+          this.x = this.normalize(attrs.x, this.x + this.width, canvasWidth - this.width);
         }
       }
 
       if ('y' in attrs) {
         if (shouldStretch) {
           var oldY = this.y;
-          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height));
+          this.y = this.normalize(attrs.y, this.y + this.height);
           this.height = this.height + oldY - this.y;
           if (this.height + this.y > canvasHeight)
             this.height = canvasHeight - this.y;
         } else {
-          this.y = Math.max(0, Math.min(attrs.y, this.y + this.height, canvasHeight - this.height));
+          this.y = this.normalize(attrs.y, this.y + this.height, canvasHeight - this.height);
         }
       }
 
       if ('width' in attrs && !(this.x === 0 && 'x' in attrs))
-        this.width = Math.max(0, Math.min(attrs.width, canvasWidth - this.x));
+        this.width = this.normalize(attrs.width, canvasWidth - this.x);
 
       if ('height' in attrs && !(this.y === 0 && 'y' in attrs))
-        this.height = Math.max(0, Math.min(attrs.height, canvasHeight - this.y));
+        this.height = this.normalize(attrs.height, canvasHeight - this.y);
 
     },
 
@@ -244,7 +257,7 @@
   function updateGenerated(map, updateInputs) {
     var $div = map.render();
     $generated.val(map.toCode());
-    map.preview.find('map').replaceWith(map.render());
+    map.$preview.find('map').replaceWith(map.render());
     if (map.selected && updateInputs !== false) {
       for (var fieldName, i=fields.length; i--;) {
         fieldName = fields[i];
@@ -256,9 +269,9 @@
 
   $(function () {
     var $canvas = $('#map');
-    var preview = $('#preview').find('.content');
+    var $preview = $('#pane-preview');
     var form = document.getElementById('pane-info');
-    var map = window.map = new Map($canvas, preview, form);
+    var map = window.map = new Map($canvas, $preview, form);
     var Status = {IDLE: 0, RESIZING: 1, DRAGGING: 2};
     var status = Status.IDLE;
     var reader = new FileReader();
@@ -398,6 +411,11 @@
       map.add(new Rect());
     });
 
+    $('#area-reset').on('click', function (e) {
+      e.preventDefault();
+      map.reset();
+    });
+
     $('#start-file').on('change', function (e) {
       reader.readAsDataURL(e.target.files[0]);
     });
@@ -406,12 +424,12 @@
       this.select();
     });
 
-    $('a.restart').click(function (e) {
+    $('#restart').click(function (e) {
       e.preventDefault();
       document.body.className = '';
     });
 
-    $('#selected').find('input, select').on('change keyup', function () {
+    $('#pane-info').find('input, select').on('change keyup', function () {
       var attrs = {};
       if (!this.value || !map.selected) return;
       attrs[this.id] = this.value;
@@ -420,12 +438,19 @@
       updateGenerated(map, false);
     });
 
+    $('.pane-group .pane-header a').click(function (e) {
+      e.preventDefault();
+      if ($(this).is('.pane-selected')) return;
+      $(this).closest('.pane-group').find('.pane-selected').removeClass('pane-selected');
+      $(this).addClass('pane-selected');
+      $($(this).attr('href')).addClass('pane-selected');
+    });
+
     var vars = {};
     var q = document.URL.split('?')[1];
     if (q) {
       q = q.split('&');
       for (var i=q.length, hash; i--;) {
-        console.log(q[i]);
         hash = q[i].split('=');
         vars[hash[0]] = decodeURIComponent(hash[1]);
       }
@@ -434,9 +459,10 @@
       start(vars.url);
     }
 
-    window.onpaste = function (e) {
+    window.addEventListener('paste', function (e) {
+      console.log(e);
       reader.readAsDataURL(e.clipboardData.items[0].getAsFile());
-    };
+    });
 
     window.requestAnimationFrame = window.requestAnimationFrame ||
       window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||

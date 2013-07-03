@@ -12,7 +12,7 @@ gradient-strength = 40%
 font-body = Helvetica, Arial, sans-serif
 font-head = font-body
 font-mono = monospace
-base-border-radius = 3px
+base-border-radius = 2px
 base-line-height = 20px
 base-gutter = base-line-height
 
@@ -20,9 +20,12 @@ well()
   border-radius base-border-radius
   padding base-gutter
 
-button(bg=color3)
+button(bg=color3, border=#2980B9)
   background bg
-  border-radius 15px
+  border-radius 16px
+  border-color border
+  border-style solid
+  border-width 0 0 3px
   color #fff
   display block
   font-size 14px
@@ -30,7 +33,9 @@ button(bg=color3)
   line-height 30px
   padding 0 base-gutter
   text-align center
-  text-transform uppercase
+
+  &:active
+    border-width 2px 0 0
 
 input()
   border-radius base-border-radius
@@ -51,7 +56,7 @@ html, body
   height 100%
 
 body
-  background #fff
+  background #ECF0F1
   font-family font-body
   font-weight 200
   line-height base-line-height
@@ -68,93 +73,108 @@ input, textarea, select, option
 
 #header
   margin 50px auto 0
-  width 960px
+  overflow hidden
+  width 480px
 
   h1
-    font-size 18px
+    color #2C3E50
+    font-size 48px
     font-weight 200
     margin 0
-    line-height 50px
+    line-height 60px
     padding 0 base-gutter
-    text-transform uppercase
+    text-align center
+
+  nav
+    display none
+    float right
+    padding 15px base-gutter
+    width 30%
+
+  #restart
+    button()
+    width 100%
 
 #state-begin
   clearfix()
-  font-size 18px
+  font-size 24px
   height 400px
   margin 0 auto
   text-align center
   width 960px
 
-#begin-example
-  float left
-  padding 0 0 0 base-gutter
-  width 50%
-
-  img
-    border-radius base-border-radius
-    display block
+#begin-intro
+  color #2C3E50
+  height 110px
+  line-height 110px
+  text-align center
 
 #begin-inputs
-  well()
-  float left
-  height 100%
+  border 1px solid #2C3E50
+  margin 0 auto
+  overflow hidden
   padding 0
-  width 50%
 
-  div
-    border-color #fff
-    border-style solid
-    border-width 0 4px 4px 0
+  li
+    border 1px solid #2C3E50
+    background #34495E
     color #fff
-    height 50%
     float left
-    padding 10px 20px
+    list-style none
+    height 100px
     width 50%
 
     i
-      font-size 72px
+      font-size 48px
       display block
-      height 130px
-      line-height 130px
+      float left
+      height 100px
+      line-height 100px
       text-align center
+      width 100px
+
+    .begin-text
+      color #fff
+      display block
+      float left
+      line-height 100px
 
   #begin-browse
-    background linear-gradient(top left, lighten(color1, gradient-strength), color1)
-    background color1
-    border-top-left-radius base-border-radius
+    position relative
 
-    a
-      color #fff
-
-    input
-      display none
-
-  #begin-enter
-    background linear-gradient(top left, lighten(color2, gradient-strength), color2)
-    background color2
-    border-top-right-radius base-border-radius
-    border-right 0
+    .begin-text
+      position relative
+      z-index 1
 
     input
       display block
-      height 30px
+      height 100%
+      left 0
+      position absolute
+      opacity 0
+      top 0
+      z-index 2
       width 100%
 
-  #begin-drag
-    background linear-gradient(top left, lighten(color3, gradient-strength), color3)
-    background color3
-    border-bottom-left-radius base-border-radius
-    border-bottom 0
+  #begin-enter
 
-  #begin-paste
-    background linear-gradient(top left, lighten(color4, gradient-strength), color4)
-    background color4
-    border-bottom-right-radius base-border-radius
-    border 0
+    input
+      display block
+      font-size 18px
+      height 60px
+      margin-top 20px
+      width 350px
+
+  #begin-example
+    border 1px solid #2C3E50
+    text-align center
+    width 100%
+
+    .begin-text
+      float none
 
 .state-started
-  background #ECF0F1
+  background #34495E
 
   #state-begin
     display none
@@ -163,46 +183,78 @@ input, textarea, select, option
     display block
 
   #header
-    background #fff
+    background #ECF0F1
+    border-bottom 1px solid #2C3E50
     left 0
+    height 61px
     margin 0
     position absolute
     top 0
     width 100%
 
+    h1
+      float left
+      font-size 20px
+
+    nav
+      display block
+
 #state-started
   display none
   height 100%
-  padding-top 50px
+  padding-top 61px
 
 .pane-stack
   float left
   height 100%
 
   &:first-child
+    position relative
     width 70%
 
+    .pane-group
+      height 100%
+
+      .pane-content
+        display none
+
+      .pane-selected
+        display block
+
+    .pane-header
+      padding-top 20px
+      padding-left base-gutter
+
+      .pane-selected
+        color #fff
+        background #2C3E50
+        border-radius 16px
+
+      a
+        color #7F8C8D
+        line-height 33px
+        height 33px
+
   &:last-child
-    background #7F8C8D
+    background #2C3E50
+    border 10px solid #34495E
     width 30%
+
+    .pane-header
+      border-bottom 1px solid #34495E
+      color #ECF0F1
+      padding 5px 0
 
 .pane
 
   .pane-header
-    background #BDC3C7
     overflow hidden
-    line-height 35px
-    padding-top 10px
-    text-transform uppercase
+    padding-top 20px
+    line-height 33px
 
     h2, a
-      color #ECF0F1
-      padding 0 base-gutter
-
-    h2, .pane-selected
-      background #7F8C8D
-      border-radius base-border-radius base-border-radius 0 0
       float left
+      padding 0 base-gutter
 
     h2, &
       font-size 14px
@@ -211,30 +263,63 @@ input, textarea, select, option
   .pane-content
     padding base-gutter
 
-.pane-group
-
-  .pane-header
-    padding-left base-gutter
-
-    .pane-selected
-      background #ECF0F1
-      color #7F8C8D
-
 #pane-edit
+  text-align center
 
-  canvas
-    clear both
-    display block
-    margin base-gutter auto 0
+  #pane-edit-help
+    bottom 0
+    color #95A5A6
+    font-size 12px
+    left 0
+    line-height 40px
+    position absolute
+    text-align center
+    width 100%
 
-  #area-add
-    button()
-    float right
-    margin-bottom base-gutter
-    padding-left 10px
+    li
+      display inline
+      list-style none
 
+      &:before
+        content '•'
+        opacity .5
+        padding 0 10px
+
+      &:first-child:before
+        content ''
+
+  nav
+    position absolute
+    right 20px
+    top 20px
+
+    a
+      button()
+      float left
+      margin-right 10px
+
+      &:last-child
+        margin-right 0
+
+    #area-remove
+      background #E74C3C
+      border-color #C0392B
+      opacity .5
+
+    #area-add
+      background #1ABC9C
+      border-color #16A085
+
+.selected #pane-edit nav
+
+  #area-remove
+    opacity 1
+
+#pane-preview
+  text-align center
 
 #pane-info
+  border-bottom 10px solid #34495E
   overflow hidden
 
   ul
@@ -250,25 +335,36 @@ input, textarea, select, option
     display block
     font-size 12px
     font-weight 200
-    text-transform uppercase
 
   input, select
     width 100%
 
   #field-url
+    padding-left 0
+    padding-top 0
     width 70%
 
   #field-target
+    padding-top 0
+    padding-right 0
     width 30%
 
   #field-alt
+    padding-left 0
+    padding-right 0
     width 100%
 
   #field-x, #field-y, #field-height, #field-width
     width 25%
 
+  #field-x
+    padding-left 0
+
+  #field-width
+    padding-right 0
+
   #area-remove
-    button(#34495E)
+    button(#2C3E50)
     margin-bottom 10px
 
 #pane-code
@@ -279,6 +375,6 @@ input, textarea, select, option
     display block
     font-size 14px
     font-weight 200
-    height 500px
+    height 300px
     padding 0
     width 100%

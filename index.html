@@ -4,35 +4,36 @@
 <link rel=stylesheet href=css/master.css>
 
 <header id=header>
-  <h1 id=header-brand><a href=# class=restart>Image Mapper</a></h1>
+  <h1>Image Mapper</h1>
+  <nav>
+    <a href=# id=restart>Restart</a>
+  </nav>
 </header>
 
 <div id=state-begin>
-  <div id=begin-inputs>
-    <div class=begin id=begin-browse>
+  <p id=begin-intro>
+    A simple interactive tool to create image maps for the web.
+  <ul id=begin-inputs>
+    <li id=begin-browse>
       <i class=icon-desktop></i>
-      <a href=#><strong>Browse</strong> your computer</a>
       <input type=file id=start-file>
-    </div>
-    <div class=begin id=begin-enter>
+      <p class=begin-text><strong>Browse</strong> your computer
+    <li id=begin-enter>
       <i class=icon-network></i>
-      <form method=get>
+      <form method=get class=begin-text>
         <input type=url name=url placeholder="Enter a url from the web">
       </form>
-    </div>
-    <div class=begin id=begin-drag>
+    <li id=begin-drag>
       <i class=icon-inbox></i>
-      <p><strong>Drag and drop</strong> here
-    </div>
-    <div class=begin id=begin-paste>
+      <p class=begin-text><strong>Drag and drop</strong> here
+    <li id=begin-paste>
       <i class=icon-clipboard></i>
-      <p><strong>Paste</strong> from your clipboard
-    </div>
-  </div>
-  <div id=begin-example>
-    <img src=//placekitten.com/460/400>
-    <a href=?url=//placekitten.com/460/400>Try this example</a>
-  </div>
+      <p class=begin-text><strong>Paste</strong> from your clipboard
+    <li id=begin-example>
+      <a class=begin-text href=?url=//placekitten.com/460/400>
+        <strong>Try</strong> an example
+      </a>
+  </ul>
 </div>
 
 <div id=state-started>
@@ -43,10 +44,17 @@
         <a href=#pane-preview>Preview</a>
       </header>
       <div class="pane-content pane-selected" id=pane-edit>
-        <a id=area-add href=#>
-          <i class=icon-plus-circled></i> Add
-        </a>
+        <nav>
+          <a id=area-remove href=#>Remove selected</a>
+          <a id=area-add href=#>Add</a>
+          <a id=area-reset href=#>Reset</a>
+        </nav>
         <canvas id=map></canvas>
+        <ul id=pane-edit-help>
+          <li><kbd>delete</kbd> to remove selected area.
+          <li><kbd>↑</kbd>, <kbd>↓</kbd>, <kbd>→</kbd>, or <kbd>←</kbd> to nudge the selected area.
+          <li>Double click to add an area.
+        </ul>
       </div>
       <div class=pane-content id=pane-preview></div>
     </div>
@@ -54,16 +62,13 @@
   <div class=pane-stack>
     <div class=pane>
       <header class=pane-header>
-        <h2>Info</h2>
+        <h2>Selected info</h2>
       </header>
       <form class=pane-content id=pane-info>
-        <a id=area-remove href=#>
-          <i class=icon-cancel-circled></i> Remove
-        </a>
         <ul>
           <li id=field-url>
             <label for=url>URL</label>
-            <input id=url disabled>
+            <input id=url name=url disabled>
           <li id=field-target>
             <label for=target>Target</label>
             <select id=target disabled>
@@ -72,25 +77,25 @@
             </select>
           <li id=field-alt>
             <label for=alt>Alt text</label>
-            <input id=alt disabled>
+            <input id=alt name=alt disabled>
           <li id=field-x>
             <label for=x>X</label>
-            <input id=x type=number min=0 disabled>
+            <input id=x name=id type=number min=0 disabled>
           <li id=field-y>
             <label for=y>Y</label>
-            <input id=y type=number min=0 disabled>
+            <input id=y name=y type=number min=0 disabled>
           <li id=field-height>
             <label for=height>Height</label>
-            <input id=height type=number min=0 disabled>
+            <input id=height name=height type=number min=0 disabled>
           <li id=field-width>
             <label for=width>Width</label>
-            <input id=width type=number min=0 disabled>
+            <input id=width name=width type=number min=0 disabled>
         </ul>
       </form>
     </div>
     <div class=pane>
       <header class=pane-header>
-        <h2>Code</h2>
+        <h2>Generated code</h2>
       </header>
       <div class=pane-content id=pane-code>
         <textarea readonly>
